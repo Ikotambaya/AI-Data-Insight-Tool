@@ -782,3 +782,10 @@ with col2:
     st.caption("📊 Advanced AI-Powered Analytics")
 with col3:
     st.caption("❤️ Made with love by Iko Tambaya")
+
+
+# ------------------------------- ENTRY POINT -------------------------------
+if __name__ == "__main__":
+    init_access_control()
+    if access_control_page():
+        main_app()
