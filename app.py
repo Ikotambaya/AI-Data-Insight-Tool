@@ -177,7 +177,11 @@ def main_app_content():
     genai.configure(api_key=gemini_api_key)
 
     # Your existing header
+    initial_sidebar_state="expanded",
     st.title("🚀 AI Data Insight Pro")
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
     st.markdown("""
     **Upload your dataset and get instant AI-powered insights with confidence scoring!**  
     Powered by Iko Tambaya with advanced data quality assessment.
