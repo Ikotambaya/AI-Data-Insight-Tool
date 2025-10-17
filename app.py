@@ -8,6 +8,7 @@ import plotly.graph_objects as go
 import google.generativeai as genai
 import os
 from datetime import datetime, timedelta
+import pandas as pd
 
 def init_access_control():
     """Initialize access control system"""
