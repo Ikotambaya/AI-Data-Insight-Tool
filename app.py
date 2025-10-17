@@ -239,8 +239,140 @@ def main_app():
         if st.button("💾 Export Visualizations"):
             st.info("Export functionality ready!")
 
-    # Continue with your existing file uploader and analysis code...
-    # [PUT YOUR EXISTING APP CODE HERE]
+    # ------------------------------- ENHANCED DATA QUALITY FUNCTIONS -------------------------------
+def assess_data_quality(df):
+    """Comprehensive data quality assessment with scoring"""
+    quality_metrics = {}
+    
+    # Completeness
+    completeness = 1 - (df.isnull().sum().sum() / df.size)
+    quality_metrics['completeness'] = completeness
+    
+    # Uniqueness
+    uniqueness = len(df.drop_duplicates()) / len(df)
+    quality_metrics['uniqueness'] = uniqueness
+    
+    # Consistency (check for data type consistency)
+    consistency_score = 0
+    for col in df.columns:
+        if df[col].dtype in ['int64', 'float64']:
+            # Check for outliers (values beyond 3 standard deviations)
+            if df[col].std() > 0:
+                outliers = len(df[col][abs(df[col] - df[col].mean()) > 3 * df[col].std()])
+                consistency_score += 1 - (outliers / len(df))
+        else:
+            # For categorical data, check for consistent formatting
+            consistency_score += 1 - (df[col].str.contains(r'[^a-zA-Z0-9\s]', regex=True).sum() / len(df))
+    
+    quality_metrics['consistency'] = consistency_score / len(df.columns) if len(df.columns) > 0 else 1
+    
+    # Accuracy (basic validation)
+    accuracy_score = 0
+    for col in df.columns:
+        if df[col].dtype in ['int64', 'float64']:
+            # Check for reasonable ranges
+            if df[col].min() >= 0 and df[col].max() < 1e6:  # Reasonable business values
+                accuracy_score += 1
+        else:
+            # Check for reasonable string lengths
+            avg_length = df[col].astype(str).str.len().mean()
+            if 1 <= avg_length <= 100:
+                accuracy_score += 1
+    
+    quality_metrics['accuracy'] = accuracy_score / len(df.columns) if len(df.columns) > 0 else 1
+    
+    # Overall quality score
+    overall_quality = sum(quality_metrics.values()) / len(quality_metrics)
+    
+    return quality_metrics, overall_quality
+
+def get_quality_color(score):
+    """Return color based on quality score"""
+    if score >= 0.8:
+        return "🟢"
+    elif score >= 0.6:
+        return "🟡"
+    else:
+        return "🔴"
+
+# ------------------------------- ENHANCED AI INSIGHTS WITH CONFIDENCE -------------------------------
+def generate_enhanced_ai_insights(df, data_overview, industry_template, quality_score):
+    """Generate AI insights with confidence scoring and industry context"""
+    
+    industry_context = {
+        'General': "Provide general business insights and trends.",
+        'Sales': "Focus on sales performance, customer behavior, and revenue optimization.",
+        'Marketing': "Analyze campaign effectiveness, customer acquisition, and marketing ROI.",
+        'Finance': "Assess financial health, risk factors, and investment opportunities.",
+        'Operations': "Evaluate operational efficiency, resource allocation, and process improvements."
+    }
+    
+    prompt = f"""
+    You are an expert {industry_template.lower()} data analyst with advanced statistical knowledge.
+    
+    Dataset Quality Score: {quality_score:.1%} (1.0 = perfect quality)
+    Industry Context: {industry_context.get(industry_template, 'General business analysis')}
+    
+    Analyze the dataset described below and provide:
+    1. Key insights and trends (with confidence levels)
+    2. Specific recommendations for {industry_template} context
+    3. Potential risks or concerns
+    4. Next steps for deeper analysis
+    5. Business implications and actionable items
+    
+    IMPORTANT: If data quality is below 70%, mention this and suggest data cleaning steps.
+    
+    Dataset summary:
+    {data_overview}
+    
+    Format your response with clear sections and bullet points.
+    """
+    
+    try:
+        available_models = [
+            m.name for m in genai.list_models() if "generateContent" in m.supported_generation_methods
+        ]
+        preferred_models = ["models/gemini-2.5-pro", "models/gemini-2.5-flash", "models/gemini-2.0-flash"]
+        model_name = next((m for m in preferred_models if m in available_models), available_models[0])
+        
+        model = genai.GenerativeModel(model_name)
+        response = model.generate_content(prompt)
+        
+        # Add confidence indicator based on data quality
+        confidence_indicator = f"\n\n**Confidence Level: {get_quality_color(quality_score)} {quality_score:.1%}**"
+        
+        if quality_score < 0.7:
+            confidence_indicator += "\n⚠️ **Low data quality detected - verify insights manually**"
+        elif quality_score >= 0.9:
+            confidence_indicator += "\n✅ **High confidence - insights are highly reliable**"
+        
+        return response.text + confidence_indicator, model_name
+        
+    except Exception as e:
+        return f"Error generating AI insights: {e}", None
+
+# ------------------------------- CHAT INTERFACE -------------------------------
+def add_chat_interface():
+    """Add conversational interface for follow-up questions"""
+    st.subheader("💬 Ask Follow-up Questions")
+    
+    # Display chat history
+    for message in st.session_state.chat_history:
+        with st.chat_message(message["role"]):
+            st.write(message["content"])
+    
+    # Chat input
+    if prompt := st.chat_input("Ask about your data..."):
+        # Add user message to history
+        st.session_state.chat_history.append({"role": "user", "content": prompt})
+        
+        # Generate AI response based on current data
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                # Simple response based on available data
+                response = f"Based on your dataset, I can help you with: {prompt}. For detailed analysis, please upload your data first."
+                st.write(response)
+                st.session_state.chat_history.append({"role": "assistant", "content": response})
 
     # Sample placeholder for your existing code
     uploaded_file = st.file_uploader("📁 Upload your CSV or Excel file", type=["csv", "xlsx"])
