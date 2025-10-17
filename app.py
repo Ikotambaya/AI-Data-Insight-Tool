@@ -409,8 +409,16 @@ if uploaded_file:
         st.error(f"❌ Error processing file: {e}")
         st.stop()
 # ------------------------------- MAIN DASHBOARD -------------------------------
-if st.session_state.df is not None:          #  <── guard
-    df = st.session_state.df
+# ---------- session ----------
+for k, v in {
+    "chat_history": [],
+    "data_quality_score": 0.0,
+    "industry_template": "General",
+    "df": None,          #  <── guarantees key exists
+    "file_name": "",
+}.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 
     # ------------------------------- ADVANCED KPI CARDS -------------------------------    
     st.markdown("## 📊 **Data Intelligence Dashboard**")
