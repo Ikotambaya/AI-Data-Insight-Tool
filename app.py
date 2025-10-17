@@ -161,21 +161,6 @@ def access_control_page():
             st.info(f"Code: {st.session_state.access_code}")
         
         return True  # Access granted, show main app
-# ------------------------------- MAIN APP -------------------------------
-def main():
-    # Initialize access control
-    init_access_control()
-    
-    # Check access first
-    if not access_control_page():
-        return  # Don't show the rest if no access
-    
-    # Your existing app code starts here
-    st.title("🚀 AI Data Insight Pro")
-    # ... rest of your existing code ...
-
-if __name__ == "__main__":
-    main()
 
 # ------------------------------- Enhanced PAGE CONFIG -------------------------------
 st.set_page_config(
