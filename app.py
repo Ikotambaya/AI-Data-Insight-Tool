@@ -13,7 +13,12 @@ st.set_page_config(
     page_title="🚀 AI Data Insight Pro",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': 'https://github.com/your-repo',
+        'Report a bug': "https://github.com/your-repo/issues",
+        'About': "# AI Data Insight Pro\nThe most advanced AI-powered data analysis tool!"
+    }
 )
 
 # ---------------- SESSION STATE ----------------
@@ -133,3 +138,13 @@ if uploaded_file:
 
 else:
     st.info("👋 Upload a file to start analyzing your data!")
+
+# ---------------- FOOTER ----------------
+st.markdown("---")
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.caption("🚀 Built with Streamlit & Google Gemini")
+with col2:
+    st.caption("📊 Advanced AI-Powered Analytics")
+with col3:
+    st.caption("❤️ Made with love by Iko Tambaya")
