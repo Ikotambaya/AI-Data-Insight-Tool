@@ -13,7 +13,8 @@ import base64
 from PIL import Image
 import json
 
-# ------------------------------- ADVANCED PAGE CONFIG -------------------------------st.set_page_config(
+# ------------------------------- ADVANCED PAGE CONFIG -------------------------------
+st.set_page_config(
     page_title="🚀 AI Data Insight Pro",
     page_icon="📊",
     layout="wide",
