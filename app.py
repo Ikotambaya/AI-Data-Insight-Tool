@@ -20,12 +20,11 @@ st.set_page_config(
 # -------------------------------
 st.title("📊 AI Data Insight Tool")
 st.markdown("""
-Upload a dataset to explore, visualize, and generate AI-driven insights automatically.  
-Powered by **Google Gemini 2.5 Pro**.
+Upload a dataset to explore, visualize, and generate AI-driven insights automatically.
 """)
 
 # -------------------------------
-# GEMINI API KEY (ENVIRONMENT ONLY)
+# API KEY
 # -------------------------------
 gemini_api_key = os.getenv("GEMINI_API_KEY")
 if not gemini_api_key:
