@@ -9,6 +9,8 @@ import google.generativeai as genai
 import os
 from datetime import datetime, timedelta
 import pandas as pd
+import time
+
 
 def init_access_control():
     """Initialize access control system"""
