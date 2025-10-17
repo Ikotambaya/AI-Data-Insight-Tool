@@ -13,8 +13,7 @@ import base64
 from PIL import Image
 import json
 
-# ------------------------------- ADVANCED PAGE CONFIG -------------------------------
-st.set_page_config(
+# ------------------------------- ADVANCED PAGE CONFIG -------------------------------st.set_page_config(
     page_title="🚀 AI Data Insight Pro",
     page_icon="📊",
     layout="wide",
@@ -26,8 +25,7 @@ st.set_page_config(
     }
 )
 
-# ------------------------------- CUSTOM CSS & STYLING -------------------------------
-st.markdown("""
+# ------------------------------- CUSTOM CSS & STYLING -------------------------------st.markdown("""
 <style>
     /* Main theme colors */
     :root {
@@ -126,8 +124,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------------------- SESSION STATE -------------------------------
-if 'chat_history' not in st.session_state:
+# ------------------------------- SESSION STATE -------------------------------if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 if 'data_quality_score' not in st.session_state:
     st.session_state.data_quality_score = 0
@@ -140,8 +137,7 @@ if 'auto_refresh' not in st.session_state:
 if 'theme' not in st.session_state:
     st.session_state.theme = 'Dark'
 
-# ------------------------------- ADVANCED FUNCTIONS -------------------------------
-    def create_gauge_chart(value, title, max_value=100, color_scheme="viridis"):
+# ------------------------------- ADVANCED FUNCTIONS -------------------------------def create_gauge_chart(value, title, max_value=100, color_scheme="viridis"):
     """Create an advanced gauge chart with gradient colors"""
     
     # Normalize value
@@ -281,8 +277,7 @@ def create_radar_chart(categories, values, title):
     
     return fig
 
-# ------------------------------- ENHANCED HEADER -------------------------------
-    col1, col2, col3 = st.columns([2, 1, 1])
+# ------------------------------- ENHANCED HEADER -------------------------------col1, col2, col3 = st.columns([2, 1, 1])
 with col1:
     st.markdown('<h1 class="animated-header">🚀 AI Data Insight Pro</h1>', unsafe_allow_html=True)
     st.markdown("### **Next-generation AI-powered data intelligence platform**")
@@ -937,8 +932,12 @@ if uploaded_file:
         st.success("✅ Sample data loaded! Explore the advanced features now.")
         st.rerun()
 
-# ------------------------------- FOOTER -------------------------------st.markdown("---")
-col2, col3, col4 = st.columns(3)
+# ------------------------------- FOOTER -------------------------------
+st.markdown("---")
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.caption("🚀 Built with Streamlit & Google Gemini")
 
 with col2:
     st.caption("📊 Advanced Analytics Platform")
