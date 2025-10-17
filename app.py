@@ -530,48 +530,6 @@ def main_app_content():
     
     # Add chat interface for follow-up questions
     add_chat_interface()
-
-    # ------------------------------- EXPORT FUNCTIONALITY -------------------------------
-    st.subheader("📥 Export & Share")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        if st.button("📊 Export Dashboard"):
-            st.success("Dashboard export feature enabled!")
-    
-    with col2:
-        if st.button("📄 Generate Report"):
-            st.success("Report generation ready!")
-    
-    with col3:
-        if st.button("🔗 Share Analysis"):
-            st.info("Share link generated!")
-    
-    with col4:
-        if st.button("🔄 Refresh Data"):
-            st.rerun()
-
-else:
-    # Welcome screen when no file is uploaded
-    st.info("👋 **Welcome to AI Data Insight Pro!**")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.metric("Files Processed", "1,234")
-        st.write("• Advanced AI analysis")
-        st.write("• Industry-specific templates")
-    
-    with col2:
-        st.metric("Insights Generated", "5,678")
-        st.write("• Confidence scoring")
-        st.write("• Real-time collaboration")
-    
-    with col3:
-        st.metric("User Satisfaction", "98%")
-        st.write("• Interactive visualizations")
-        st.write("• Export capabilities")
     
     # Sample data demo
     if st.button("🎯 Try with Sample Data"):
