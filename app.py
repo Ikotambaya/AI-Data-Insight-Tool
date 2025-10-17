@@ -66,6 +66,7 @@ https://ikotambaya.com"""
         st.error(f"Email failed: {e}")
         return False
 
+# Replace your access_control_page() function with this:
 def access_control_page():
     """Display access control interface"""
     st.markdown("""
@@ -99,13 +100,13 @@ def access_control_page():
             st.markdown('<div class="access-form">', unsafe_allow_html=True)
             st.subheader("📧 Request Access")
             
-            with st.form("request_access"):
-                email = st.text_input("Enter your email:", placeholder="your.email@example.com")
-                submitted = st.form_submit_button("Request Access")
+            with st.form("request_access_form"):  # CHANGED: Unique form key
+                email_request = st.text_input("Enter your email:", placeholder="your.email@example.com")
+                submitted_request = st.form_submit_button("Request Access")
                 
-                if submitted and email:
+                if submitted_request and email_request:
                     access_code = "AIDATA2024"  # Simple code for now
-                    if send_access_email(email, access_code):
+                    if send_access_email(email_request, access_code):
                         st.success("✅ Access code sent! Check your email.")
                         st.info(f"Your code: {access_code}")  # Show code for demo
                     else:
@@ -118,18 +119,19 @@ def access_control_page():
             st.markdown('<div class="access-form">', unsafe_allow_html=True)
             st.subheader("🔑 Have Access Code?")
             
-            with st.form("access_code"):
-                email = st.text_input("Email:", placeholder="your.email@example.com")
-                code = st.text_input("Access Code:", placeholder="Enter your code")
-                submitted = st.form_submit_button("Access Tool")
+            with st.form("access_code_form"):  # CHANGED: Unique form key
+                email_login = st.text_input("Email:", placeholder="your.email@example.com")
+                code_login = st.text_input("Access Code:", placeholder="Enter your code")
+                submitted_login = st.form_submit_button("Access Tool")
                 
-                if submitted and email and code:
-                    if check_access_code(email, code):
+                if submitted_login and email_login and code_login:
+                    if check_access_code(email_login, code_login):
+                        # Set session state OUTSIDE the form
                         st.session_state.access_granted = True
-                        st.session_state.user_email = email
-                        st.session_state.access_code = code
+                        st.session_state.user_email = email_login
+                        st.session_state.access_code = code_login
                         st.success("✅ Access granted!")
-                        st.rerun()
+                        st.rerun()  # Rerun to show main app
                     else:
                         st.error("❌ Invalid access code")
             
@@ -151,7 +153,6 @@ def access_control_page():
             st.info(f"Code: {st.session_state.access_code}")
         
         return True  # Access granted, show main app
-
 # ------------------------------- YOUR EXISTING APP CODE -------------------------------
 # Put all your existing code here, but wrap it in a function
 def main_app():
