@@ -306,7 +306,7 @@ with col3:
     """, unsafe_allow_html=True)
 
 # ------------------------------- ENHANCED SIDEBAR -------------------------------
-    with st.sidebar:
+with st.sidebar:
     st.markdown("## ⚙️ **Control Center**")
     
     # User profile section
