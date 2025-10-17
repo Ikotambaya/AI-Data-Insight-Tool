@@ -9,6 +9,199 @@ from datetime import datetime, timedelta
 import time
 from io import BytesIO
 import base64
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import hashlib
+
+# Add to your existing Streamlit app
+import streamlit as st
+import pandas as pd
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import hashlib
+import time
+
+# ------------------------------- ACCESS CONTROL -------------------------------
+def init_access_control():
+    """Initialize access control system"""
+    if 'access_granted' not in st.session_state:
+        st.session_state.access_granted = False
+    if 'user_email' not in st.session_state:
+        st.session_state.user_email = ""
+    if 'access_code' not in st.session_state:
+        st.session_state.access_code = ""
+
+def check_access_code(email, code):
+    """Validate access code"""
+    # You can change these codes as needed
+    valid_codes = ['AIDATA2024', 'IKOPORTFOLIO', 'DEMOACCESS', 'CLIENT2024']
+    return code.upper() in valid_codes
+
+def send_access_email(user_email, access_code):
+    """Send access confirmation email"""
+    try:
+        # Your email configuration
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        sender_email = "ikotambaya1@gmail.com"
+        sender_password = os.getenv("EMAIL_PASSWORD")  # You'll set this in Streamlit secrets
+        
+        # Create message
+        message = MIMEMultipart("alternative")
+        message["Subject"] = "Access Granted - AI Data Insight Pro"
+        message["From"] = sender_email
+        message["To"] = user_email
+        
+        # Email content
+        text = f"""Hello!
+        
+Thank you for requesting access to AI Data Insight Pro!
+Your access code is: {access_code}
+        
+You can now use the tool at: https://your-app-name.streamlit.app
+        
+Best regards,
+Iko Tambaya
+https://ikotambaya.com"""
+        
+        part = MIMEText(text, "plain")
+        message.attach(part)
+        
+        # Send email
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, user_email, message.as_string())
+            
+        return True
+    except Exception as e:
+        st.error(f"Email failed: {e}")
+        return False
+
+def access_control_page():
+    """Display access control interface"""
+    st.markdown("""
+    <style>
+    .access-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        color: white;
+        text-align: center;
+        margin: 2rem 0;
+    }
+    .access-form {
+        background: rgba(255,255,255,0.1);
+        padding: 2rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown('<div class="access-container">', unsafe_allow_html=True)
+    st.title("🔐 AI Data Insight Pro - Access Control")
+    st.markdown("### Advanced AI-Powered Data Analytics Platform")
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    if not st.session_state.access_granted:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown('<div class="access-form">', unsafe_allow_html=True)
+            st.subheader("📧 Request Access")
+            
+            with st.form("request_access"):
+                email = st.text_input("Enter your email:", placeholder="your.email@example.com")
+                submitted = st.form_submit_button("Request Access")
+                
+                if submitted and email:
+                    # Generate access code
+                    access_code = "AIDATA" + str(hash(email + str(time.time())))[-6:].upper()
+                    
+                    # Send email
+                    if send_access_email(email, access_code):
+                        st.success("✅ Access code sent! Check your email.")
+                        st.info(f"Demo code: AIDATA2024")  # For testing
+                    else:
+                        st.error("❌ Failed to send email. Try code: AIDATA2024")
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown('<div class="access-form">', unsafe_allow_html=True)
+            st.subheader("🔑 Have Access Code?")
+            
+            with st.form("access_code"):
+                email = st.text_input("Email:", placeholder="your.email@example.com")
+                code = st.text_input("Access Code:", placeholder="Enter your code")
+                submitted = st.form_submit_button("Access Tool")
+                
+                if submitted and email and code:
+                    if check_access_code(email, code):
+                        st.session_state.access_granted = True
+                        st.session_state.user_email = email
+                        st.session_state.access_code = code
+                        st.success("✅ Access granted!")
+                        st.rerun()
+                    else:
+                        st.error("❌ Invalid access code")
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Show project info
+        with st.expander("🎯 About This Tool"):
+            st.markdown("""
+            **AI Data Insight Pro** is an advanced analytics platform that transforms raw data into actionable insights.
+            
+            ### Features:
+            - 🤖 AI-powered insights with confidence scoring
+            - 📊 Real-time data quality assessment  
+            - 📈 Interactive visualizations
+            - 🎯 Industry-specific templates
+            - ⚡ 90% faster than traditional analysis
+            
+            ### Technology Stack:
+            - Python & Streamlit
+            - Google Gemini AI API
+            - Plotly Visualization
+            - Pandas Data Processing
+            """)
+        
+        return False
+    else:
+        # Show welcome message
+        col1, col2, col3 = st.columns([3, 1, 1])
+        with col1:
+            st.success(f"✅ Welcome, {st.session_state.user_email}!")
+        with col2:
+            if st.button("🚪 Logout"):
+                st.session_state.access_granted = False
+                st.session_state.user_email = ""
+                st.session_state.access_code = ""
+                st.rerun()
+        with col3:
+            st.info(f"Code: {st.session_state.access_code}")
+        
+        return True
+
+# ------------------------------- MAIN APP -------------------------------
+def main():
+    # Initialize access control
+    init_access_control()
+    
+    # Check access first
+    if not access_control_page():
+        return  # Don't show the rest if no access
+    
+    # Your existing app code starts here
+    st.title("🚀 AI Data Insight Pro")
+    # ... rest of your existing code ...
+
+if __name__ == "__main__":
+    main()
 
 # ------------------------------- Enhanced PAGE CONFIG -------------------------------
 st.set_page_config(
