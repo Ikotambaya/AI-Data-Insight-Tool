@@ -20,6 +20,162 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import hashlib
 
+# Fixed streamlit_app.py - with proper access control and corrections
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+import google.generativeai as genai
+import os
+# ADD THESE IMPORTS for access control
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import hashlib
+import time
+from datetime import datetime, timedelta
+
+# ------------------------------- ACCESS CONTROL FUNCTIONS -------------------------------
+def init_access_control():
+    """Initialize access control system"""
+    if 'access_granted' not in st.session_state:
+        st.session_state.access_granted = False
+    if 'user_email' not in st.session_state:
+        st.session_state.user_email = ""
+    if 'access_code' not in st.session_state:
+        st.session_state.access_code = ""
+
+def check_access_code(email, code):
+    """Validate access code"""
+    valid_codes = ['AIDATA2024', 'IKOPORTFOLIO', 'DEMOACCESS', 'CLIENT2024']
+    return code.upper() in valid_codes
+
+def send_access_email(user_email, access_code):
+    """Send access confirmation email"""
+    try:
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        sender_email = "ikotambaya1@gmail.com"
+        sender_password = os.getenv("EMAIL_PASSWORD")  # Set this in Streamlit secrets
+        
+        message = MIMEMultipart("alternative")
+        message["Subject"] = "Access Granted - AI Data Insight Pro"
+        message["From"] = sender_email
+        message["To"] = user_email
+        
+        text = f"""Hello!
+
+Thank you for requesting access to AI Data Insight Pro!
+
+Your access code is: {access_code}
+
+You can now use this code to access the tool.
+
+Best regards,
+Iko Tambaya
+https://ikotambaya.com"""
+        
+        part = MIMEText(text, "plain")
+        message.attach(part)
+        
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, user_email, message.as_string())
+            
+        return True
+    except Exception as e:
+        st.error(f"Email failed: {e}")
+        return False
+
+def access_control_page():
+    """Display access control interface"""
+    st.markdown("""
+    <style>
+    .access-container {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        color: white;
+        text-align: center;
+        margin: 2rem 0;
+    }
+    .access-form {
+        background: rgba(255,255,255,0.1);
+        padding: 2rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    st.markdown('<div class="access-container">', unsafe_allow_html=True)
+    st.title("🔐 AI Data Insight Pro - Access Control")
+    st.markdown("### Advanced AI-Powered Data Analytics Platform")
+    st.markdown('</div>', unsafe_allow_html=True)
+    
+    if not st.session_state.access_granted:
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown('<div class="access-form">', unsafe_allow_html=True)
+            st.subheader("📧 Request Access")
+            
+            with st.form("request_access_form"):
+                email_request = st.text_input("Enter your email:", placeholder="your.email@example.com")
+                submitted_request = st.form_submit_button("Request Access")
+                
+                if submitted_request and email_request:
+                    access_code = "AIDATA2024"  # Simple code for now
+                    if send_access_email(email_request, access_code):
+                        st.success("✅ Access code sent! Check your email.")
+                        st.info(f"Your code: {access_code}")  # Show code for demo
+                    else:
+                        st.error("❌ Failed to send email.")
+                        st.info(f"Demo code: {access_code}")  # Show code anyway
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        with col2:
+            st.markdown('<div class="access-form">', unsafe_allow_html=True)
+            st.subheader("🔑 Have Access Code?")
+            
+            with st.form("access_code_form"):
+                email_login = st.text_input("Email:", placeholder="your.email@example.com")
+                code_login = st.text_input("Access Code:", placeholder="Enter your code")
+                submitted_login = st.form_submit_button("Access Tool")
+                
+                if submitted_login and email_login and code_login:
+                    if check_access_code(email_login, code_login):
+                        # Set session state OUTSIDE the form
+                        st.session_state.access_granted = True
+                        st.session_state.user_email = email_login
+                        st.session_state.access_code = code_login
+                        st.success("✅ Access granted!")
+                        st.rerun()  # Rerun to show main app
+                    else:
+                        st.error("❌ Invalid access code")
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        return False  # No access, don't show main app
+    else:
+        # Show welcome message and logout button
+        col1, col2, col3 = st.columns([3, 1, 1])
+        with col1:
+            st.success(f"✅ Welcome, {st.session_state.user_email}!")
+        with col2:
+            if st.button("🚪 Logout"):
+                st.session_state.access_granted = False
+                st.session_state.user_email = ""
+                st.session_state.access_code = ""
+                st.rerun()
+        with col3:
+            st.info(f"Code: {st.session_state.access_code}")
+        
+        return True
+
 # ------------------------------- CONFIG / CONSTANTS -------------------------------
 MAX_FILE_SIZE_MB = 100  # maximum allowed upload size
 
