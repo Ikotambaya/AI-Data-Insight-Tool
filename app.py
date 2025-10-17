@@ -1,19 +1,10 @@
-# Your existing streamlit_app.py - with access control added
+# Part 1: access_control.py - Access control system
 import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-import google.generativeai as genai
-import os
-# ADD THESE IMPORTS for access control
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import hashlib
-import time
+import os
 
-# ------------------------------- ACCESS CONTROL FUNCTIONS -------------------------------
 def init_access_control():
     """Initialize access control system"""
     if 'access_granted' not in st.session_state:
@@ -99,13 +90,13 @@ def access_control_page():
             st.markdown('<div class="access-form">', unsafe_allow_html=True)
             st.subheader("📧 Request Access")
             
-            with st.form("request_access"):
-                email = st.text_input("Enter your email:", placeholder="your.email@example.com")
-                submitted = st.form_submit_button("Request Access")
+            with st.form("request_access_form"):
+                email_request = st.text_input("Enter your email:", placeholder="your.email@example.com")
+                submitted_request = st.form_submit_button("Request Access")
                 
-                if submitted and email:
+                if submitted_request and email_request:
                     access_code = "AIDATA2024"  # Simple code for now
-                    if send_access_email(email, access_code):
+                    if send_access_email(email_request, access_code):
                         st.success("✅ Access code sent! Check your email.")
                         st.info(f"Your code: {access_code}")  # Show code for demo
                     else:
@@ -118,18 +109,19 @@ def access_control_page():
             st.markdown('<div class="access-form">', unsafe_allow_html=True)
             st.subheader("🔑 Have Access Code?")
             
-            with st.form("access_code"):
-                email = st.text_input("Email:", placeholder="your.email@example.com")
-                code = st.text_input("Access Code:", placeholder="Enter your code")
-                submitted = st.form_submit_button("Access Tool")
+            with st.form("access_code_form"):
+                email_login = st.text_input("Email:", placeholder="your.email@example.com")
+                code_login = st.text_input("Access Code:", placeholder="Enter your code")
+                submitted_login = st.form_submit_button("Access Tool")
                 
-                if submitted and email and code:
-                    if check_access_code(email, code):
+                if submitted_login and email_login and code_login:
+                    if check_access_code(email_login, code_login):
+                        # Set session state OUTSIDE the form
                         st.session_state.access_granted = True
-                        st.session_state.user_email = email
-                        st.session_state.access_code = code
+                        st.session_state.user_email = email_login
+                        st.session_state.access_code = code_login
                         st.success("✅ Access granted!")
-                        st.rerun()
+                        st.rerun()  # Rerun to show main app
                     else:
                         st.error("❌ Invalid access code")
             
@@ -151,92 +143,38 @@ def access_control_page():
             st.info(f"Code: {st.session_state.access_code}")
         
         return True  # Access granted, show main app
+# Part 2: main_functions.py - Main app functionality
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+import google.generativeai as genai
+import os
+from datetime import datetime, timedelta
 
-# ------------------------------- Enhanced PAGE CONFIG -------------------------------
-st.set_page_config(
-    page_title="🚀 AI Data Insight Pro",
-    page_icon="📊",
-    layout="wide",
-    initial_sidebar_state="expanded",
-    menu_items={
-        'Get Help': 'https://github.com/your-repo',
-        'Report a bug': "https://github.com/your-repo/issues",
-        'About': "# AI Data Insight Pro\nThe most advanced AI-powered data analysis tool!"
-    }
-)
+def init_session_state():
+    """Initialize session state variables"""
+    if 'chat_history' not in st.session_state:
+        st.session_state.chat_history = []
+    if 'data_quality_score' not in st.session_state:
+        st.session_state.data_quality_score = 0
+    if 'last_analysis' not in st.session_state:
+        st.session_state.last_analysis = None
+    if 'industry_template' not in st.session_state:
+        st.session_state.industry_template = 'General'
+    if 'auto_refresh' not in st.session_state:
+        st.session_state.auto_refresh = False
 
-# ------------------------------- SESSION STATE INITIALIZATION -------------------------------
-if 'chat_history' not in st.session_state:
-    st.session_state.chat_history = []
-if 'data_quality_score' not in st.session_state:
-    st.session_state.data_quality_score = 0
-if 'last_analysis' not in st.session_state:
-    st.session_state.last_analysis = None
-if 'industry_template' not in st.session_state:
-    st.session_state.industry_template = 'General'
-if 'auto_refresh' not in st.session_state:
-    st.session_state.auto_refresh = False
+def setup_gemini_api():
+    """Setup Gemini API"""
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_api_key:
+        st.error("🚨 Gemini API key not found. Set GEMINI_API_KEY as an environment variable.")
+        st.stop()
+    genai.configure(api_key=gemini_api_key)
+    return gemini_api_key
 
-# ------------------------------- ENHANCED HEADER -------------------------------
-st.title("🚀 AI Data Insight Pro")
-st.markdown("""
-**Upload your dataset and get instant AI-powered insights with confidence scoring!**  
-Powered by Iko Tambaya with advanced data quality assessment.
-""")
-
-# ------------------------------- SIDEBAR ENHANCEMENTS -------------------------------
-with st.sidebar:
-    st.header("⚙️ Configuration")
-    
-    # Industry template selection
-    industry_templates = {
-        'General': ['Overview', 'Trends', 'Correlations'],
-        'Sales': ['Revenue Analysis', 'Customer Segmentation', 'Sales Forecasting'],
-        'Marketing': ['Campaign Performance', 'ROI Analysis', 'Channel Effectiveness'],
-        'Finance': ['Risk Assessment', 'Budget Variance', 'Cash Flow Analysis'],
-        'Operations': ['Efficiency Metrics', 'Resource Utilization', 'Process Optimization']
-    }
-    
-    st.session_state.industry_template = st.selectbox(
-        "🏢 Select Industry Template",
-        list(industry_templates.keys()),
-        help="Choose industry-specific analysis templates"
-    )
-    
-    # Auto-refresh toggle
-    st.session_state.auto_refresh = st.toggle(
-        "🔄 Auto-refresh (5 min)",
-        help="Automatically refresh analysis every 5 minutes"
-    )
-    
-    # Data quality threshold
-    quality_threshold = st.slider(
-        "📊 Quality Threshold (%)",
-        min_value=50,
-        max_value=100,
-        value=70,
-        help="Minimum data quality score for reliable insights"
-    )
-    
-    # Export options
-    st.divider()
-    st.subheader("📥 Export Options")
-    
-    if st.button("📄 Generate Full Report"):
-        st.success("Report generation feature enabled!")
-    
-    if st.button("💾 Export Visualizations"):
-        st.info("Export functionality ready!")
-
-# ------------------------------- GEMINI API KEY -------------------------------
-gemini_api_key = os.getenv("GEMINI_API_KEY")
-if not gemini_api_key:
-    st.error("🚨 Gemini API key not found. Set GEMINI_API_KEY as an environment variable.")
-    st.stop()
-
-genai.configure(api_key=gemini_api_key)
-
-# ------------------------------- ENHANCED DATA QUALITY FUNCTIONS -------------------------------
 def assess_data_quality(df):
     """Comprehensive data quality assessment with scoring"""
     quality_metrics = {}
@@ -292,7 +230,6 @@ def get_quality_color(score):
     else:
         return "🔴"
 
-# ------------------------------- ENHANCED AI INSIGHTS WITH CONFIDENCE -------------------------------
 def generate_enhanced_ai_insights(df, data_overview, industry_template, quality_score):
     """Generate AI insights with confidence scoring and industry context"""
     
@@ -348,7 +285,6 @@ def generate_enhanced_ai_insights(df, data_overview, industry_template, quality_
     except Exception as e:
         return f"Error generating AI insights: {e}", None
 
-# ------------------------------- CHAT INTERFACE -------------------------------
 def add_chat_interface():
     """Add conversational interface for follow-up questions"""
     st.subheader("💬 Ask Follow-up Questions")
@@ -371,14 +307,51 @@ def add_chat_interface():
                 st.write(response)
                 st.session_state.chat_history.append({"role": "assistant", "content": response})
 
-# ------------------------------- FILE UPLOADER -------------------------------
-uploaded_file = st.file_uploader(
-    "📁 Upload your CSV or Excel file", 
-    type=["csv", "xlsx"],
-    help="Supports CSV and Excel files. Max file size: 200MB"
-)
+def create_sidebar():
+    """Create and configure sidebar"""
+    with st.sidebar:
+        st.header("⚙️ Configuration")
+        
+        industry_templates = {
+            'General': ['Overview', 'Trends', 'Correlations'],
+            'Sales': ['Revenue Analysis', 'Customer Segmentation', 'Sales Forecasting'],
+            'Marketing': ['Campaign Performance', 'ROI Analysis', 'Channel Effectiveness'],
+            'Finance': ['Risk Assessment', 'Budget Variance', 'Cash Flow Analysis'],
+            'Operations': ['Efficiency Metrics', 'Resource Utilization', 'Process Optimization']
+        }
+        
+        st.session_state.industry_template = st.selectbox(
+            "🏢 Select Industry Template",
+            list(industry_templates.keys()),
+            help="Choose industry-specific analysis templates"
+        )
+        
+        st.session_state.auto_refresh = st.toggle(
+            "🔄 Auto-refresh (5 min)",
+            help="Automatically refresh analysis every 5 minutes"
+        )
+        
+        quality_threshold = st.slider(
+            "📊 Quality Threshold (%)",
+            min_value=50,
+            max_value=100,
+            value=70,
+            help="Minimum data quality score for reliable insights"
+        )
+        
+        st.divider()
+        st.subheader("📥 Export Options")
+        
+        if st.button("📄 Generate Full Report"):
+            st.success("Report generation feature enabled!")
+        
+        if st.button("💾 Export Visualizations"):
+            st.info("Export functionality ready!")
+        
+        return quality_threshold
 
-if uploaded_file:
+def process_uploaded_file(uploaded_file):
+    """Process uploaded file and return dataframe"""
     try:
         with st.status("📊 Processing your data..."):
             if uploaded_file.name.endswith(".csv"):
@@ -387,24 +360,15 @@ if uploaded_file:
                 df = pd.read_excel(uploaded_file)
             time.sleep(1)  # Simulate processing time
             st.write("✅ File loaded successfully!")
-        
-        # Auto-refresh logic
-        if st.session_state.auto_refresh:
-            if 'last_refresh' not in st.session_state:
-                st.session_state.last_refresh = datetime.now()
-            
-            if datetime.now() - st.session_state.last_refresh > timedelta(minutes=5):
-                st.session_state.last_refresh = datetime.now()
-                st.rerun()
-        
+        return df, True
     except Exception as e:
         st.error(f"❌ Error reading file: {e}")
-        st.stop()
+        return None, False
 
-    # ------------------------------- ENHANCED DATA PREVIEW & QUALITY -------------------------------
+def display_data_preview(df, uploaded_file):
+    """Display data preview with quality indicators"""
     st.subheader("📄 Data Preview")
     
-    # Data preview with quality indicators
     col1, col2 = st.columns([3, 1])
     with col1:
         st.dataframe(df.head(10), use_container_width=True)
@@ -413,61 +377,15 @@ if uploaded_file:
         st.metric("Total Columns", df.shape[1])
         st.metric("File Size", f"{uploaded_file.size / 1024:.1f} KB")
 
-    # ------------------------------- DATA QUALITY ASSESSMENT -------------------------------
-    with st.expander("🔍 Data Quality Assessment", expanded=True):
-        quality_metrics, overall_quality = assess_data_quality(df)
-        st.session_state.data_quality_score = overall_quality
-        
-        col1, col2, col3, col4, col5 = st.columns(5)
-        
-        with col1:
-            st.metric(
-                "Completeness",
-                f"{quality_metrics['completeness']:.1%}",
-                help="Percentage of non-missing values"
-            )
-        with col2:
-            st.metric(
-                "Uniqueness",
-                f"{quality_metrics['uniqueness']:.1%}",
-                help="Percentage of unique rows"
-            )
-        with col3:
-            st.metric(
-                "Consistency",
-                f"{quality_metrics['consistency']:.1%}",
-                help="Data format and outlier consistency"
-            )
-        with col4:
-            st.metric(
-                "Accuracy",
-                f"{quality_metrics['accuracy']:.1%}",
-                help="Data validation and reasonable ranges"
-            )
-        with col5:
-            quality_color = get_quality_color(overall_quality)
-            st.metric(
-                "Overall Quality",
-                f"{quality_color} {overall_quality:.1%}",
-                help="Combined data quality score"
-            )
-        
-        # Quality progress bar
-        st.progress(overall_quality)
-        
-        if overall_quality < 0.7:
-            st.warning("⚠️ Data quality is below recommended threshold. Consider data cleaning for better insights.")
-            if st.button("🧹 Show Data Cleaning Suggestions"):
-                st.info("• Remove duplicate rows\n• Handle missing values\n• Check for outliers\n• Validate data types")
-
-    # ------------------------------- ENHANCED BASIC STATS -------------------------------
+def display_data_overview(df):
+    """Display enhanced dataset overview"""
     st.subheader("📊 Enhanced Dataset Overview")
-    col1, col2, col3, col4, col5 = st.columns(5)
     
     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
     categorical_cols = df.select_dtypes(exclude=np.number).columns.tolist()
     datetime_cols = df.select_dtypes(include=['datetime64']).columns.tolist()
     
+    col1, col2, col3, col4, col5 = st.columns(5)
     col1.metric("📈 Numeric Columns", len(numeric_cols))
     col2.metric("📝 Categorical Columns", len(categorical_cols))
     col3.metric("📅 Date/Time Columns", len(datetime_cols))
@@ -488,8 +406,11 @@ if uploaded_file:
                 'Missing %': missing_percent
             })
             st.dataframe(missing_df[missing_df['Missing Count'] > 0])
+    
+    return numeric_cols, categorical_cols, datetime_cols
 
-    # ------------------------------- ENHANCED VISUAL INSIGHTS -------------------------------
+def create_visualizations(df, numeric_cols, categorical_cols):
+    """Create interactive visualizations"""
     st.subheader("📊 Smart Visual Insights")
 
     if numeric_cols:
@@ -572,7 +493,8 @@ if uploaded_file:
                 fig_bar.update_layout(xaxis_title=selected_cat, yaxis_title="Count")
                 st.plotly_chart(fig_bar, use_container_width=True)
 
-    # ------------------------------- CONVERSATIONAL AI INSIGHTS -------------------------------
+def create_ai_insights_section(df):
+    """Create AI insights section"""
     st.subheader("🤖 AI-Powered Insights with Confidence Scoring")
     
     with st.expander("🔧 AI Analysis Settings"):
@@ -607,11 +529,9 @@ if uploaded_file:
             
             # Store analysis for chat history
             st.session_state.last_analysis = ai_insights
-    
-    # Add chat interface for follow-up questions
-    add_chat_interface()
 
-    # ------------------------------- EXPORT FUNCTIONALITY -------------------------------
+def create_export_section():
+    """Create export functionality section"""
     st.subheader("📥 Export & Share")
     
     col1, col2, col3, col4 = st.columns(4)
@@ -632,8 +552,8 @@ if uploaded_file:
         if st.button("🔄 Refresh Data"):
             st.rerun()
 
-else:
-    # Welcome screen when no file is uploaded
+def display_welcome_screen():
+    """Display welcome screen when no file is uploaded"""
     st.info("👋 **Welcome to AI Data Insight Pro!**")
     
     col1, col2, col3 = st.columns(3)
@@ -656,6 +576,7 @@ else:
     # Sample data demo
     if st.button("🎯 Try with Sample Data"):
         # Generate sample data
+        import numpy as np
         np.random.seed(42)
         sample_df = pd.DataFrame({
             'Date': pd.date_range('2024-01-01', periods=100, freq='D'),
@@ -668,27 +589,151 @@ else:
         st.session_state.sample_data = sample_df
         st.success("Sample data loaded! Upload a file to analyze your own data.")
 
-# ------------------------------- FOOTER -------------------------------
-st.markdown("---")
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.caption("🚀 Built with Streamlit & Google Gemini")
-with col2:
-    st.caption("📊 Advanced AI-Powered Analytics")
-with col3:
-    st.caption("❤️ Made with love by Iko Tambaya")
+def display_footer():
+    """Display footer"""
+    st.markdown("---")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.caption("🚀 Built with Streamlit & Google Gemini")
+    with col2:
+        st.caption("📊 Advanced AI-Powered Analytics")
+    with col3:
+        st.caption("❤️ Made with love by Iko Tambaya")
 
-# ------------------------------- MAIN APP LOGIC -------------------------------
+
+# Part 3: app.py - Main entry point with access control
+import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
+import google.generativeai as genai
+import os
+from datetime import datetime, timedelta
+
+# Import the separate modules
+from access_control import init_access_control, access_control_page
+from main_functions import (
+    init_session_state, setup_gemini_api, assess_data_quality, get_quality_color,
+    generate_enhanced_ai_insights, add_chat_interface, create_sidebar,
+    process_uploaded_file, display_data_preview, display_data_overview,
+    create_visualizations, create_ai_insights_section, create_export_section,
+    display_welcome_screen, display_footer
+)
+
+def main_app_content():
+    """Main app content (only shown when access is granted)"""
+    # Setup Gemini API
+    gemini_api_key = setup_gemini_api()
+    
+    # Initialize session state
+    init_session_state()
+    
+    # Your existing header
+    st.title("🚀 AI Data Insight Pro")
+    st.markdown("""
+    **Upload your dataset and get instant AI-powered insights with confidence scoring!**  
+    Powered by Iko Tambaya with advanced data quality assessment.
+    """)
+
+    # Create sidebar
+    quality_threshold = create_sidebar()
+
+    # Your existing file uploader and analysis code
+    uploaded_file = st.file_uploader(
+        "📁 Upload your CSV or Excel file", 
+        type=["csv", "xlsx"],
+        help="Supports CSV and Excel files. Max file size: 200MB"
+    )
+
+    if uploaded_file:
+        # Process uploaded file
+        df, success = process_uploaded_file(uploaded_file)
+        
+        if success:
+            # Auto-refresh logic
+            if st.session_state.auto_refresh:
+                if 'last_refresh' not in st.session_state:
+                    st.session_state.last_refresh = datetime.now()
+                
+                if datetime.now() - st.session_state.last_refresh > timedelta(minutes=5):
+                    st.session_state.last_refresh = datetime.now()
+                    st.rerun()
+
+            # Display data preview
+            display_data_preview(df, uploaded_file)
+            
+            # Data quality assessment
+            quality_metrics, overall_quality = assess_data_quality(df)
+            st.session_state.data_quality_score = overall_quality
+            
+            with st.expander("🔍 Data Quality Assessment", expanded=True):
+                col1, col2, col3, col4, col5 = st.columns(5)
+                
+                with col1:
+                    st.metric("Completeness", f"{quality_metrics['completeness']:.1%}")
+                with col2:
+                    st.metric("Uniqueness", f"{quality_metrics['uniqueness']:.1%}")
+                with col3:
+                    st.metric("Consistency", f"{quality_metrics['consistency']:.1%}")
+                with col4:
+                    st.metric("Accuracy", f"{quality_metrics['accuracy']:.1%}")
+                with col5:
+                    quality_color = get_quality_color(overall_quality)
+                    st.metric("Overall Quality", f"{quality_color} {overall_quality:.1%}")
+                
+                st.progress(overall_quality)
+                
+                if overall_quality < 0.7:
+                    st.warning("⚠️ Data quality is below recommended threshold.")
+            
+            # Display data overview
+            numeric_cols, categorical_cols, datetime_cols = display_data_overview(df)
+            
+            # Create visualizations
+            create_visualizations(df, numeric_cols, categorical_cols)
+            
+            # AI insights
+            create_ai_insights_section(df)
+            
+            # Chat interface
+            add_chat_interface()
+            
+            # Export section
+            create_export_section()
+        
+    else:
+        # Welcome screen when no file is uploaded
+        display_welcome_screen()
+
+    # Footer
+    display_footer()
+
 def main():
     """Main app with access control"""
+    # Set page config here only once
+    st.set_page_config(
+        page_title="🚀 AI Data Insight Pro",
+        page_icon="📊",
+        layout="wide",
+        initial_sidebar_state="expanded",
+        menu_items={
+            'Get Help': 'https://github.com/your-repo',
+            'Report a bug': "https://github.com/your-repo/issues",
+            'About': "# AI Data Insight Pro\nThe most advanced AI-powered data analysis tool!"
+        }
+    )
+    
     # Initialize access control
     init_access_control()
     
-    # Check access first
-    if access_control_page():
-        # Access granted - show main app
-        main_app()
-    # If no access, the access_control_page() will handle the display
+    # Check access
+    if st.session_state.access_granted:
+        # Show main app
+        main_app_content()
+    else:
+        # Show access control
+        access_control_page()
 
 if __name__ == "__main__":
     main()
