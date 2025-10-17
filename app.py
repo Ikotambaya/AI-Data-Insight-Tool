@@ -595,16 +595,6 @@ def display_footer():
     with col3:
         st.caption("❤️ Made with love by Iko Tambaya")
 
-# Import the separate modules
-from access_control import init_access_control, access_control_page
-from main_functions import (
-    init_session_state, setup_gemini_api, assess_data_quality, get_quality_color,
-    generate_enhanced_ai_insights, add_chat_interface, create_sidebar,
-    process_uploaded_file, display_data_preview, display_data_overview,
-    create_visualizations, create_ai_insights_section, create_export_section,
-    display_welcome_screen, display_footer
-)
-
 def main_app_content():
     """Main app content (only shown when access is granted)"""
     # Setup Gemini API
