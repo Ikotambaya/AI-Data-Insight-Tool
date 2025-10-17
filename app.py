@@ -39,7 +39,7 @@ if 'auto_refresh' not in st.session_state:
 st.title("🚀 AI Data Insight Pro")
 st.markdown("""
 **Upload your dataset and get instant AI-powered insights with confidence scoring!**  
-Powered by **Google Gemini 2.5 Pro** with advanced data quality assessment.
+Powered by Iko Tambaya with advanced data quality assessment.
 """)
 
 # ------------------------------- SIDEBAR ENHANCEMENTS -------------------------------
