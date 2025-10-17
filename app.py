@@ -12,6 +12,8 @@ from io import BytesIO
 import base64
 from PIL import Image
 import json
+import access_control
+
 
 # ------------------------------- ADVANCED PAGE CONFIG -------------------------------
 st.set_page_config(
