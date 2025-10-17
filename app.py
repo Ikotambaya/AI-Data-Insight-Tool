@@ -410,15 +410,15 @@ if uploaded_file:
         st.stop()
 # ------------------------------- MAIN DASHBOARD -------------------------------
 # ---------- session ----------
-for k, v in {
-    "chat_history": [],
-    "data_quality_score": 0.0,
-    "industry_template": "General",
-    "df": None,          #  <── guarantees key exists
-    "file_name": "",
-}.items():
-    if k not in st.session_state:
-        st.session_state[k] = v
+    for k, v in {
+        "chat_history": [],
+        "data_quality_score": 0.0,
+        "industry_template": "General",
+        "df": None,          #  <── guarantees key exists
+        "file_name": "",
+    }.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
 
     # ------------------------------- ADVANCED KPI CARDS -------------------------------    
     st.markdown("## 📊 **Data Intelligence Dashboard**")
