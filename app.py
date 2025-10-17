@@ -546,16 +546,6 @@ def main_app_content():
         st.session_state.sample_data = sample_df
         st.success("Sample data loaded! Upload a file to analyze your own data.")
 
-# ------------------------------- FOOTER -------------------------------
-st.markdown("---")
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.caption("🚀 Built with Streamlit & Google Gemini")
-with col2:
-    st.caption("📊 Advanced AI-Powered Analytics")
-with col3:
-    st.caption("❤️ Made with love by Iko Tambaya")
-
 
 # ------------------------------- MAIN APP LOGIC -------------------------------
 def main():
