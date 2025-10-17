@@ -141,7 +141,7 @@ if 'theme' not in st.session_state:
     st.session_state.theme = 'Dark'
 
 # ------------------------------- ADVANCED FUNCTIONS -------------------------------
-    def create_gauge_chart(value, title, max_value=100, color_scheme="viridis"):
+def create_gauge_chart(value, title, max_value=100, color_scheme="viridis"):
     """Create an advanced gauge chart with gradient colors"""
     
     # Normalize value
