@@ -3,7 +3,11 @@ import streamlit as st
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import plotly.express as px
+import plotly.graph_objects as go
+import google.generativeai as genai
 import os
+from datetime import datetime, timedelta
 
 def init_access_control():
     """Initialize access control system"""
@@ -143,15 +147,6 @@ def access_control_page():
             st.info(f"Code: {st.session_state.access_code}")
         
         return True  # Access granted, show main app
-# Part 2: main_functions.py - Main app functionality
-import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-import google.generativeai as genai
-import os
-from datetime import datetime, timedelta
 
 def init_session_state():
     """Initialize session state variables"""
@@ -599,17 +594,6 @@ def display_footer():
         st.caption("📊 Advanced AI-Powered Analytics")
     with col3:
         st.caption("❤️ Made with love by Iko Tambaya")
-
-
-# Part 3: app.py - Main entry point with access control
-import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-import google.generativeai as genai
-import os
-from datetime import datetime, timedelta
 
 # Import the separate modules
 from access_control import init_access_control, access_control_page
