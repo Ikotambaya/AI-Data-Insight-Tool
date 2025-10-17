@@ -165,66 +165,7 @@ def main_app():
 
     genai.configure(api_key=gemini_api_key)
 
-    # Your existing page config
-    st.set_page_config(
-        page_title="🚀 AI Data Insight Pro",
-        page_icon="📊",
-        layout="wide",
-        initial_sidebar_state="expanded",
-        menu_items={
-            'Get Help': 'https://github.com/your-repo',
-            'Report a bug': "https://github.com/your-repo/issues",
-            'About': "# AI Data Insight Pro\nThe most advanced AI-powered data analysis tool!"
-        }
-    )
-
-    # Your existing header
-    st.title("🚀 AI Data Insight Pro")
-    st.markdown("""
-    **Upload your dataset and get instant AI-powered insights with confidence scoring!**  
-    Powered by Iko Tambaya with advanced data quality assessment.
-    """)
-
-    # Your existing sidebar code
-    with st.sidebar:
-        st.header("⚙️ Configuration")
-        
-        industry_templates = {
-            'General': ['Overview', 'Trends', 'Correlations'],
-            'Sales': ['Revenue Analysis', 'Customer Segmentation', 'Sales Forecasting'],
-            'Marketing': ['Campaign Performance', 'ROI Analysis', 'Channel Effectiveness'],
-            'Finance': ['Risk Assessment', 'Budget Variance', 'Cash Flow Analysis'],
-            'Operations': ['Efficiency Metrics', 'Resource Utilization', 'Process Optimization']
-        }
-        
-        st.session_state.industry_template = st.selectbox(
-            "🏢 Select Industry Template",
-            list(industry_templates.keys()),
-            help="Choose industry-specific analysis templates"
-        )
-        
-        st.session_state.auto_refresh = st.toggle(
-            "🔄 Auto-refresh (5 min)",
-            help="Automatically refresh analysis every 5 minutes"
-        )
-        
-        quality_threshold = st.slider(
-            "📊 Quality Threshold (%)",
-            min_value=50,
-            max_value=100,
-            value=70,
-            help="Minimum data quality score for reliable insights"
-        )
-        
-        st.divider()
-        st.subheader("📥 Export Options")
-        
-        if st.button("📄 Generate Full Report"):
-            st.success("Report generation feature enabled!")
-        
-        if st.button("💾 Export Visualizations"):
-            st.info("Export functionality ready!")
-# ------------------------------- Enhanced PAGE CONFIG -------------------------------
+# ------------------------------- PAGE CONFIG -------------------------------
 st.set_page_config(
     page_title="🚀 AI Data Insight Pro",
     page_icon="📊",
@@ -237,7 +178,7 @@ st.set_page_config(
     }
 )
 
-# ------------------------------- SESSION STATE INITIALIZATION -------------------------------
+# ------------------------------- SESSION STATE -------------------------------
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 if 'data_quality_score' not in st.session_state:
@@ -249,12 +190,56 @@ if 'industry_template' not in st.session_state:
 if 'auto_refresh' not in st.session_state:
     st.session_state.auto_refresh = False
 
-# ------------------------------- ENHANCED HEADER -------------------------------
+# ------------------------------- HEADER -------------------------------
 st.title("🚀 AI Data Insight Pro")
 st.markdown("""
 **Upload your dataset and get instant AI-powered insights with confidence scoring!**  
 Powered by Iko Tambaya with advanced data quality assessment.
 """)
+
+# ------------------------------- SIDEBAR -------------------------------
+with st.sidebar:
+    st.header("⚙️ Configuration")
+
+    industry_templates = {
+        'General': ['Overview', 'Trends', 'Correlations'],
+        'Sales': ['Revenue Analysis', 'Customer Segmentation', 'Sales Forecasting'],
+        'Marketing': ['Campaign Performance', 'ROI Analysis', 'Channel Effectiveness'],
+        'Finance': ['Risk Assessment', 'Budget Variance', 'Cash Flow Analysis'],
+        'Operations': ['Efficiency Metrics', 'Resource Utilization', 'Process Optimization']
+    }
+
+    st.selectbox(
+        "🏢 Select Industry Template",
+        list(industry_templates.keys()),
+        key="industry_template",
+        help="Choose industry-specific analysis templates"
+    )
+
+    st.checkbox(
+        "🔄 Auto-refresh (5 min)",
+        key="auto_refresh",
+        help="Automatically refresh analysis every 5 minutes"
+    )
+
+    st.slider(
+        "📊 Quality Threshold (%)",
+        min_value=50,
+        max_value=100,
+        value=70,
+        help="Minimum data quality score for reliable insights",
+        key="quality_threshold"
+    )
+
+    st.markdown("---")
+    st.subheader("📥 Export Options")
+
+    if st.button("📄 Generate Full Report"):
+        st.success("Report generation feature enabled!")
+
+    if st.button("💾 Export Visualizations"):
+        st.info("Export functionality ready!")
+
 
 # ------------------------------- SIDEBAR ENHANCEMENTS -------------------------------
 with st.sidebar:
