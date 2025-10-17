@@ -23,7 +23,7 @@ from email.mime.multipart import MIMEMultipart
 import hashlib
 import time
 
-# ------------------------------- ACCESS CONTROL -------------------------------
+# ------------------------------- ACCESS CONTROL FUNCTIONS -------------------------------
 def init_access_control():
     """Initialize access control system"""
     if 'access_granted' not in st.session_state:
@@ -35,33 +35,30 @@ def init_access_control():
 
 def check_access_code(email, code):
     """Validate access code"""
-    # You can change these codes as needed
     valid_codes = ['AIDATA2024', 'IKOPORTFOLIO', 'DEMOACCESS', 'CLIENT2024']
     return code.upper() in valid_codes
 
 def send_access_email(user_email, access_code):
     """Send access confirmation email"""
     try:
-        # Your email configuration
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
         sender_email = "ikotambaya1@gmail.com"
-        sender_password = os.getenv("EMAIL_PASSWORD")  # You'll set this in Streamlit secrets
+        sender_password = os.getenv("EMAIL_PASSWORD")  # Set this in Streamlit secrets
         
-        # Create message
         message = MIMEMultipart("alternative")
         message["Subject"] = "Access Granted - AI Data Insight Pro"
         message["From"] = sender_email
         message["To"] = user_email
         
-        # Email content
         text = f"""Hello!
-        
+
 Thank you for requesting access to AI Data Insight Pro!
+
 Your access code is: {access_code}
-        
-You can now use the tool at: https://your-app-name.streamlit.app
-        
+
+You can now use this code to access the tool.
+
 Best regards,
 Iko Tambaya
 https://ikotambaya.com"""
@@ -69,7 +66,6 @@ https://ikotambaya.com"""
         part = MIMEText(text, "plain")
         message.attach(part)
         
-        # Send email
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.starttls()
             server.login(sender_email, sender_password)
@@ -118,15 +114,13 @@ def access_control_page():
                 submitted = st.form_submit_button("Request Access")
                 
                 if submitted and email:
-                    # Generate access code
-                    access_code = "AIDATA" + str(hash(email + str(time.time())))[-6:].upper()
-                    
-                    # Send email
+                    access_code = "AIDATA2024"  # Simple code for now
                     if send_access_email(email, access_code):
                         st.success("✅ Access code sent! Check your email.")
-                        st.info(f"Demo code: AIDATA2024")  # For testing
+                        st.info(f"Your code: {access_code}")  # Show code for demo
                     else:
-                        st.error("❌ Failed to send email. Try code: AIDATA2024")
+                        st.error("❌ Failed to send email.")
+                        st.info(f"Demo code: {access_code}")  # Show code anyway
             
             st.markdown('</div>', unsafe_allow_html=True)
         
@@ -151,28 +145,9 @@ def access_control_page():
             
             st.markdown('</div>', unsafe_allow_html=True)
         
-        # Show project info
-        with st.expander("🎯 About This Tool"):
-            st.markdown("""
-            **AI Data Insight Pro** is an advanced analytics platform that transforms raw data into actionable insights.
-            
-            ### Features:
-            - 🤖 AI-powered insights with confidence scoring
-            - 📊 Real-time data quality assessment  
-            - 📈 Interactive visualizations
-            - 🎯 Industry-specific templates
-            - ⚡ 90% faster than traditional analysis
-            
-            ### Technology Stack:
-            - Python & Streamlit
-            - Google Gemini AI API
-            - Plotly Visualization
-            - Pandas Data Processing
-            """)
-        
-        return False
+        return False  # No access, don't show main app
     else:
-        # Show welcome message
+        # Show welcome message and logout button
         col1, col2, col3 = st.columns([3, 1, 1])
         with col1:
             st.success(f"✅ Welcome, {st.session_state.user_email}!")
@@ -185,8 +160,7 @@ def access_control_page():
         with col3:
             st.info(f"Code: {st.session_state.access_code}")
         
-        return True
-
+        return True  # Access granted, show main app
 # ------------------------------- MAIN APP -------------------------------
 def main():
     # Initialize access control
