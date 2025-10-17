@@ -831,7 +831,7 @@ else:                                        #  <── optional friendly prompt
     with col4:
         if st.button("🔄 Refresh Analysis", use_container_width=True):
             st.rerun()
-            else:
+        else:
                 st.markdown("""
                 <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-radius: 20px; border: 1px solid rgba(99, 102, 241, 0.2);">
                     <h1 style="color: #6366F1; font-size: 3rem; margin-bottom: 20px;">🚀 Welcome to AI Data Insight Pro</h1>
