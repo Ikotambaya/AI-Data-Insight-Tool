@@ -947,10 +947,7 @@ else:
 
 # ------------------------------- FOOTER -------------------------------
 st.markdown("---")
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.caption("🚀 Built with Streamlit & Google Gemini")
+col2, col3, col4 = st.columns(3)
 
 with col2:
     st.caption("📊 Advanced Analytics Platform")
