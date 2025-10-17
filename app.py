@@ -13,7 +13,8 @@ import base64
 from PIL import Image
 import json
 
-# ------------------------------- ADVANCED PAGE CONFIG -------------------------------st.set_page_config(
+# ------------------------------- ADVANCED PAGE CONFIG -------------------------------
+st.set_page_config(
     page_title="🚀 AI Data Insight Pro",
     page_icon="📊",
     layout="wide",
@@ -25,7 +26,8 @@ import json
     }
 )
 
-# ------------------------------- CUSTOM CSS & STYLING -------------------------------st.markdown("""
+# ------------------------------- CUSTOM CSS & STYLING -------------------------------
+st.markdown("""
 <style>
     /* Main theme colors */
     :root {
@@ -124,7 +126,8 @@ import json
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------------------- SESSION STATE -------------------------------if 'chat_history' not in st.session_state:
+# ------------------------------- SESSION STATE -------------------------------
+if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 if 'data_quality_score' not in st.session_state:
     st.session_state.data_quality_score = 0
@@ -137,7 +140,8 @@ if 'auto_refresh' not in st.session_state:
 if 'theme' not in st.session_state:
     st.session_state.theme = 'Dark'
 
-# ------------------------------- ADVANCED FUNCTIONS -------------------------------def create_gauge_chart(value, title, max_value=100, color_scheme="viridis"):
+# ------------------------------- ADVANCED FUNCTIONS -------------------------------
+def create_gauge_chart(value, title, max_value=100, color_scheme="viridis"):
     """Create an advanced gauge chart with gradient colors"""
     
     # Normalize value
@@ -277,7 +281,8 @@ def create_radar_chart(categories, values, title):
     
     return fig
 
-# ------------------------------- ENHANCED HEADER -------------------------------col1, col2, col3 = st.columns([2, 1, 1])
+# ------------------------------- ENHANCED HEADER -------------------------------
+col1, col2, col3 = st.columns([2, 1, 1])
 with col1:
     st.markdown('<h1 class="animated-header">🚀 AI Data Insight Pro</h1>', unsafe_allow_html=True)
     st.markdown("### **Next-generation AI-powered data intelligence platform**")
@@ -300,7 +305,8 @@ with col3:
     </div>
     """, unsafe_allow_html=True)
 
-# ------------------------------- ENHANCED SIDEBAR -------------------------------with st.sidebar:
+# ------------------------------- ENHANCED SIDEBAR -------------------------------
+with st.sidebar:
     st.markdown("## ⚙️ **Control Center**")
     
     # User profile section
@@ -370,7 +376,8 @@ with col3:
         if st.button("📤 Quick Share"):
             st.info("Share link copied!")
 
-# ------------------------------- FILE UPLOADER WITH PREVIEW -------------------------------uploaded_file = st.file_uploader(
+# ------------------------------- FILE UPLOADER WITH PREVIEW -------------------------------
+uploaded_file = st.file_uploader(
     "📁 **Drop your file here or click to upload**",
     type=["csv", "xlsx", "json", "parquet"],
     help="Supports: CSV, Excel, JSON, Parquet. Max: 500MB",
@@ -402,10 +409,12 @@ if uploaded_file:
         st.error(f"❌ Error processing file: {e}")
         st.stop()
 
-# ------------------------------- MAIN DASHBOARD -------------------------------if 'df' in st.session_state:
+# ------------------------------- MAIN DASHBOARD -------------------------------
+if 'df' in st.session_state:
     df = st.session_state.df
     
-    # ------------------------------- ADVANCED KPI CARDS -------------------------------    st.markdown("## 📊 **Data Intelligence Dashboard**")
+    # ------------------------------- ADVANCED KPI CARDS -------------------------------    
+    st.markdown("## 📊 **Data Intelligence Dashboard**")
     
     # Calculate advanced metrics
     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
@@ -468,7 +477,8 @@ if uploaded_file:
             color="#EF4444" if duplicate_pct > 5 else "#10B981"
         ), unsafe_allow_html=True)
     
-    # ------------------------------- DATA QUALITY GAUGE -------------------------------    st.markdown('<div class="gauge-container">', unsafe_allow_html=True)
+    # ------------------------------- DATA QUALITY GAUGE -------------------------------    
+    st.markdown('<div class="gauge-container">', unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col2:
@@ -489,7 +499,8 @@ if uploaded_file:
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # ------------------------------- ADVANCED VISUALIZATIONS -------------------------------    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    # ------------------------------- ADVANCED VISUALIZATIONS -------------------------------    
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "🔍 **Data Explorer**", 
         "📈 **Advanced Analytics**", 
         "🎯 **AI Insights**", 
@@ -822,7 +833,8 @@ if uploaded_file:
                     
                     st.plotly_chart(fig, use_container_width=True)
     
-    # ------------------------------- EXPORT & SHARE -------------------------------    st.divider()
+    # ------------------------------- EXPORT & SHARE -------------------------------    
+    st.divider()
     st.markdown("## 📥 **Export & Collaboration**")
     
     col1, col2, col3, col4 = st.columns(4)
@@ -855,7 +867,8 @@ if uploaded_file:
         if st.button("🔄 Refresh Analysis", use_container_width=True):
             st.rerun()
 
-# ------------------------------- WELCOME SCREEN -------------------------------else:
+# ------------------------------- WELCOME SCREEN -------------------------------
+else:
     st.markdown("""
     <div style="text-align: center; padding: 60px 20px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%); border-radius: 20px; border: 1px solid rgba(99, 102, 241, 0.2);">
         <h1 style="color: #6366F1; font-size: 3rem; margin-bottom: 20px;">🚀 Welcome to AI Data Insight Pro</h1>
