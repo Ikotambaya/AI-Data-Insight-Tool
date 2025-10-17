@@ -126,7 +126,8 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------------------- SESSION STATE -------------------------------if 'chat_history' not in st.session_state:
+# ------------------------------- SESSION STATE -------------------------------
+if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 if 'data_quality_score' not in st.session_state:
     st.session_state.data_quality_score = 0
@@ -139,7 +140,8 @@ if 'auto_refresh' not in st.session_state:
 if 'theme' not in st.session_state:
     st.session_state.theme = 'Dark'
 
-# ------------------------------- ADVANCED FUNCTIONS -------------------------------def create_gauge_chart(value, title, max_value=100, color_scheme="viridis"):
+# ------------------------------- ADVANCED FUNCTIONS -------------------------------
+    def create_gauge_chart(value, title, max_value=100, color_scheme="viridis"):
     """Create an advanced gauge chart with gradient colors"""
     
     # Normalize value
@@ -279,7 +281,8 @@ def create_radar_chart(categories, values, title):
     
     return fig
 
-# ------------------------------- ENHANCED HEADER -------------------------------col1, col2, col3 = st.columns([2, 1, 1])
+# ------------------------------- ENHANCED HEADER -------------------------------
+    col1, col2, col3 = st.columns([2, 1, 1])
 with col1:
     st.markdown('<h1 class="animated-header">🚀 AI Data Insight Pro</h1>', unsafe_allow_html=True)
     st.markdown("### **Next-generation AI-powered data intelligence platform**")
