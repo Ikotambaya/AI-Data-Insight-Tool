@@ -199,6 +199,27 @@ def main_app():
     Powered by Iko Tambaya with advanced data quality assessment.
     """)
 
+    uploaded_file = st.file_uploader("📁 Upload your CSV or Excel file", type=["csv", "xlsx"])
+    if uploaded_file:
+        try:
+            if uploaded_file.name.endswith(".csv"):
+                df = pd.read_csv(uploaded_file)
+            else:
+                df = pd.read_excel(uploaded_file)
+            
+            st.success("✅ File loaded successfully!")
+            
+            # Add your existing analysis code here...
+            st.write("File has", df.shape[0], "rows and", df.shape[1], "columns")
+            st.dataframe(df.head())
+            
+        except Exception as e:
+            st.error(f"❌ Error reading file: {e}")
+            st.stop()
+    
+    else:
+        st.info("👋 Upload a file to get started!")
+
     # Your existing sidebar code
     with st.sidebar:
         st.header("⚙️ Configuration")
@@ -374,58 +395,6 @@ def add_chat_interface():
                 st.write(response)
                 st.session_state.chat_history.append({"role": "assistant", "content": response})
 
-    # Sample placeholder for your existing code
-    uploaded_file = st.file_uploader("📁 Upload your CSV or Excel file", type=["csv", "xlsx"])
-    
-    if uploaded_file:
-        try:
-            if uploaded_file.name.endswith(".csv"):
-                df = pd.read_csv(uploaded_file)
-            else:
-                df = pd.read_excel(uploaded_file)
-            
-            st.success("✅ File loaded successfully!")
-            
-            # Add your existing analysis code here...
-            st.write("File has", df.shape[0], "rows and", df.shape[1], "columns")
-            st.dataframe(df.head())
-            
-        except Exception as e:
-            st.error(f"❌ Error reading file: {e}")
-            st.stop()
-    
-    else:
-        st.info("👋 Upload a file to get started!")
-
-# ------------------------------- FILE UPLOADER -------------------------------
-uploaded_file = st.file_uploader(
-    "📁 Upload your CSV or Excel file", 
-    type=["csv", "xlsx"],
-    help="Supports CSV and Excel files. Max file size: 200MB"
-)
-
-if uploaded_file:
-    try:
-        with st.status("📊 Processing your data..."):
-            if uploaded_file.name.endswith(".csv"):
-                df = pd.read_csv(uploaded_file)
-            else:
-                df = pd.read_excel(uploaded_file)
-            time.sleep(1)  # Simulate processing time
-            st.write("✅ File loaded successfully!")
-        
-        # Auto-refresh logic
-        if st.session_state.auto_refresh:
-            if 'last_refresh' not in st.session_state:
-                st.session_state.last_refresh = datetime.now()
-            
-            if datetime.now() - st.session_state.last_refresh > timedelta(minutes=5):
-                st.session_state.last_refresh = datetime.now()
-                st.rerun()
-        
-    except Exception as e:
-        st.error(f"❌ Error reading file: {e}")
-        st.stop()
 
     # ------------------------------- ENHANCED DATA PREVIEW & QUALITY -------------------------------
     st.subheader("📄 Data Preview")
