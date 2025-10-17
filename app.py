@@ -26,7 +26,8 @@ st.set_page_config(
     }
 )
 
-# ------------------------------- CUSTOM CSS & STYLING -------------------------------st.markdown("""
+# ------------------------------- CUSTOM CSS & STYLING -------------------------------
+st.markdown("""
 <style>
     /* Main theme colors */
     :root {
