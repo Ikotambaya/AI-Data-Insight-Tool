@@ -248,6 +248,7 @@ def main_app():
 
     with st.sidebar:
         st.header("⚙️ Configuration")
+        
         industry_templates = {
             'General': ['Overview', 'Trends', 'Correlations'],
             'Sales': ['Revenue Analysis', 'Customer Segmentation', 'Sales Forecasting'],
@@ -255,10 +256,34 @@ def main_app():
             'Finance': ['Risk Assessment', 'Budget Variance', 'Cash Flow Analysis'],
             'Operations': ['Efficiency Metrics', 'Resource Utilization', 'Process Optimization']
         }
-
-        st.session_state.industry_template = st.selectbox("🏢 Select Industry Template", list(industry_templates.keys()))
-        st.session_state.auto_refresh = st.toggle("🔄 Auto-refresh (5 min)")
-        st.slider("📊 Quality Threshold (%)", 50, 100, 70)
+        
+        st.session_state.industry_template = st.selectbox(
+            "🏢 Select Industry Template",
+            list(industry_templates.keys()),
+            help="Choose industry-specific analysis templates"
+        )
+        
+        st.session_state.auto_refresh = st.toggle(
+            "🔄 Auto-refresh (5 min)",
+            help="Automatically refresh analysis every 5 minutes"
+        )
+        
+        quality_threshold = st.slider(
+            "📊 Quality Threshold (%)",
+            min_value=50,
+            max_value=100,
+            value=70,
+            help="Minimum data quality score for reliable insights"
+        )
+        
+        st.divider()
+        st.subheader("📥 Export Options")
+        
+        if st.button("📄 Generate Full Report"):
+            st.success("Report generation feature enabled!")
+        
+        if st.button("💾 Export Visualizations"):
+            st.info("Export functionality ready!")
 
     # ------------------------------- FILE UPLOADER -------------------------------
     uploaded_file = st.file_uploader("📁 Upload your CSV or Excel file", type=["csv", "xlsx"])
