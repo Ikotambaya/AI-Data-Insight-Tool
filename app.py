@@ -408,74 +408,39 @@ if uploaded_file:
     except Exception as e:
         st.error(f"❌ Error processing file: {e}")
         st.stop()
-
 # ------------------------------- MAIN DASHBOARD -------------------------------
-if 'df' in st.session_state:
+if st.session_state.df is not None:          #  <── guard
     df = st.session_state.df
-    
+
     # ------------------------------- ADVANCED KPI CARDS -------------------------------    
     st.markdown("## 📊 **Data Intelligence Dashboard**")
     
-    # Calculate advanced metrics
-    numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
+    numeric_cols   = df.select_dtypes(include=np.number).columns.tolist()
     categorical_cols = df.select_dtypes(exclude=np.number).columns.tolist()
-    datetime_cols = df.select_dtypes(include=['datetime64']).columns.tolist()
+    datetime_cols  = df.select_dtypes(include=['datetime64']).columns.tolist()
     
-    missing_pct = (df.isnull().sum().sum() / df.size) * 100
-    duplicate_pct = (df.duplicated().sum() / len(df)) * 100
+    missing_pct    = (df.isnull().sum().sum() / df.size) * 100
+    duplicate_pct  = (df.duplicated().sum() / len(df)) * 100
     
-    # Display KPI cards in columns
     col1, col2, col3, col4, col5, col6 = st.columns(6)
     
-    with col1:
-        st.markdown(create_advanced_kpi_card(
-            "Total Records", 
-            f"{len(df):,}", 
-            icon="📊", 
-            color="#6366F1"
-        ), unsafe_allow_html=True)
+    cards = [
+        ("Total Records",  f"{len(df):,}",     "📊", "#6366F1"),
+        ("Dimensions",     f"{df.shape[1]}",   "📐", "#8B5CF6"),
+        ("Numeric Fields", f"{len(numeric_cols)}", "🔢", "#10B981"),
+        ("Categories",     f"{len(categorical_cols)}", "🏷️", "#F59E0B"),
+        ("Missing Data",   f"{missing_pct:.1f}%", "⚠️", "#EF4444" if missing_pct > 10 else "#10B981"),
+        ("Duplicates",     f"{duplicate_pct:.1f}%", "🔄", "#EF4444" if duplicate_pct > 5 else "#10B981"),
+    ]
     
-    with col2:
-        st.markdown(create_advanced_kpi_card(
-            "Dimensions", 
-            f"{df.shape[1]}", 
-            icon="📐", 
-            color="#8B5CF6"
-        ), unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown(create_advanced_kpi_card(
-            "Numeric Fields", 
-            f"{len(numeric_cols)}", 
-            icon="🔢", 
-            color="#10B981"
-        ), unsafe_allow_html=True)
-    
-    with col4:
-        st.markdown(create_advanced_kpi_card(
-            "Categories", 
-            f"{len(categorical_cols)}", 
-            icon="🏷️", 
-            color="#F59E0B"
-        ), unsafe_allow_html=True)
-    
-    with col5:
-        st.markdown(create_advanced_kpi_card(
-            "Missing Data", 
-            f"{missing_pct:.1f}%", 
-            change=-missing_pct,
-            icon="⚠️", 
-            color="#EF4444" if missing_pct > 10 else "#10B981"
-        ), unsafe_allow_html=True)
-    
-    with col6:
-        st.markdown(create_advanced_kpi_card(
-            "Duplicates", 
-            f"{duplicate_pct:.1f}%", 
-            change=-duplicate_pct,
-            icon="🔄", 
-            color="#EF4444" if duplicate_pct > 5 else "#10B981"
-        ), unsafe_allow_html=True)
+    for col, (title, val, icon, color) in zip((col1, col2, col3, col4, col5, col6), cards):
+        with col:
+            st.markdown(create_advanced_kpi_card(title, val, icon=icon, color=color), unsafe_allow_html=True)
+
+    # (keep the rest of your dashboard code here …)
+
+else:                                        #  <── optional friendly prompt
+    st.info("👋 Upload a CSV or Excel file to start.")
     
     # ------------------------------- DATA QUALITY GAUGE -------------------------------    
     st.markdown('<div class="gauge-container">', unsafe_allow_html=True)
