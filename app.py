@@ -165,24 +165,23 @@ def access_control_page():
         
         return True  # Access granted, show main app
 
-# ------------------------------- SESSION STATE INITIALIZATION -------------------------------
-if 'chat_history' not in st.session_state:
-    st.session_state.chat_history = []
-if 'data_quality_score' not in st.session_state:
-    st.session_state.data_quality_score = 0
-if 'last_analysis' not in st.session_state:
-    st.session_state.last_analysis = None
-if 'industry_template' not in st.session_state:
-    st.session_state.industry_template = 'General'
-if 'auto_refresh' not in st.session_state:
-    st.session_state.auto_refresh = False
+# ------------------------------- MAIN APP CONTENT -------------------------------
+def main_app_content():
+    """Main app content (only shown when access is granted)"""
+    # Your existing Gemini API setup
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
+    if not gemini_api_key:
+        st.error("🚨 Gemini API key not found. Set GEMINI_API_KEY as an environment variable.")
+        st.stop()
 
-# ------------------------------- ENHANCED HEADER -------------------------------
-st.title("🚀 AI Data Insight Pro")
-st.markdown("""
-**Upload your dataset and get instant AI-powered insights with confidence scoring!**  
-Powered by Iko Tambaya with advanced data quality assessment.
-""")
+    genai.configure(api_key=gemini_api_key)
+
+    # Your existing header
+    st.title("🚀 AI Data Insight Pro")
+    st.markdown("""
+    **Upload your dataset and get instant AI-powered insights with confidence scoring!**  
+    Powered by Iko Tambaya with advanced data quality assessment.
+    """)
 
 # ------------------------------- SIDEBAR ENHANCEMENTS -------------------------------
 with st.sidebar:
