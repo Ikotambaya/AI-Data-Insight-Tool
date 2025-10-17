@@ -1,4 +1,4 @@
-# Fixed streamlit_app.py - with proper access control and no duplicates
+# Your existing streamlit_app.py - with access control added
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -12,7 +12,6 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import hashlib
 import time
-from datetime import datetime, timedelta
 
 # ------------------------------- ACCESS CONTROL FUNCTIONS -------------------------------
 def init_access_control():
@@ -23,17 +22,6 @@ def init_access_control():
         st.session_state.user_email = ""
     if 'access_code' not in st.session_state:
         st.session_state.access_code = ""
-    # Initialize other session state variables
-    if 'chat_history' not in st.session_state:
-        st.session_state.chat_history = []
-    if 'data_quality_score' not in st.session_state:
-        st.session_state.data_quality_score = 0
-    if 'last_analysis' not in st.session_state:
-        st.session_state.last_analysis = None
-    if 'industry_template' not in st.session_state:
-        st.session_state.industry_template = 'General'
-    if 'auto_refresh' not in st.session_state:
-        st.session_state.auto_refresh = False
 
 def check_access_code(email, code):
     """Validate access code"""
@@ -111,13 +99,13 @@ def access_control_page():
             st.markdown('<div class="access-form">', unsafe_allow_html=True)
             st.subheader("📧 Request Access")
             
-            with st.form("request_access_form"):
-                email_request = st.text_input("Enter your email:", placeholder="your.email@example.com")
-                submitted_request = st.form_submit_button("Request Access")
+            with st.form("request_access"):
+                email = st.text_input("Enter your email:", placeholder="your.email@example.com")
+                submitted = st.form_submit_button("Request Access")
                 
-                if submitted_request and email_request:
+                if submitted and email:
                     access_code = "AIDATA2024"  # Simple code for now
-                    if send_access_email(email_request, access_code):
+                    if send_access_email(email, access_code):
                         st.success("✅ Access code sent! Check your email.")
                         st.info(f"Your code: {access_code}")  # Show code for demo
                     else:
@@ -130,19 +118,18 @@ def access_control_page():
             st.markdown('<div class="access-form">', unsafe_allow_html=True)
             st.subheader("🔑 Have Access Code?")
             
-            with st.form("access_code_form"):
-                email_login = st.text_input("Email:", placeholder="your.email@example.com")
-                code_login = st.text_input("Access Code:", placeholder="Enter your code")
-                submitted_login = st.form_submit_button("Access Tool")
+            with st.form("access_code"):
+                email = st.text_input("Email:", placeholder="your.email@example.com")
+                code = st.text_input("Access Code:", placeholder="Enter your code")
+                submitted = st.form_submit_button("Access Tool")
                 
-                if submitted_login and email_login and code_login:
-                    if check_access_code(email_login, code_login):
-                        # Set session state OUTSIDE the form
+                if submitted and email and code:
+                    if check_access_code(email, code):
                         st.session_state.access_granted = True
-                        st.session_state.user_email = email_login
-                        st.session_state.access_code = code_login
+                        st.session_state.user_email = email
+                        st.session_state.access_code = code
                         st.success("✅ Access granted!")
-                        st.rerun()  # Rerun to show main app
+                        st.rerun()
                     else:
                         st.error("❌ Invalid access code")
             
@@ -165,23 +152,37 @@ def access_control_page():
         
         return True  # Access granted, show main app
 
-# ------------------------------- MAIN APP CONTENT -------------------------------
-def main_app_content():
-    """Main app content (only shown when access is granted)"""
-    # Your existing Gemini API setup
-    gemini_api_key = os.getenv("GEMINI_API_KEY")
-    if not gemini_api_key:
-        st.error("🚨 Gemini API key not found. Set GEMINI_API_KEY as an environment variable.")
-        st.stop()
+# ------------------------------- Enhanced PAGE CONFIG -------------------------------
+st.set_page_config(
+    page_title="🚀 AI Data Insight Pro",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': 'https://github.com/your-repo',
+        'Report a bug': "https://github.com/your-repo/issues",
+        'About': "# AI Data Insight Pro\nThe most advanced AI-powered data analysis tool!"
+    }
+)
 
-    genai.configure(api_key=gemini_api_key)
+# ------------------------------- SESSION STATE INITIALIZATION -------------------------------
+if 'chat_history' not in st.session_state:
+    st.session_state.chat_history = []
+if 'data_quality_score' not in st.session_state:
+    st.session_state.data_quality_score = 0
+if 'last_analysis' not in st.session_state:
+    st.session_state.last_analysis = None
+if 'industry_template' not in st.session_state:
+    st.session_state.industry_template = 'General'
+if 'auto_refresh' not in st.session_state:
+    st.session_state.auto_refresh = False
 
-    # Your existing header
-    st.title("🚀 AI Data Insight Pro")
-    st.markdown("""
-    **Upload your dataset and get instant AI-powered insights with confidence scoring!**  
-    Powered by Iko Tambaya with advanced data quality assessment.
-    """)
+# ------------------------------- ENHANCED HEADER -------------------------------
+st.title("🚀 AI Data Insight Pro")
+st.markdown("""
+**Upload your dataset and get instant AI-powered insights with confidence scoring!**  
+Powered by Iko Tambaya with advanced data quality assessment.
+""")
 
 # ------------------------------- SIDEBAR ENHANCEMENTS -------------------------------
 with st.sidebar:
@@ -683,26 +684,11 @@ def main():
     # Initialize access control
     init_access_control()
     
-    # Set page config here only once
-    st.set_page_config(
-        page_title="🚀 AI Data Insight Pro",
-        page_icon="📊",
-        layout="wide",
-        initial_sidebar_state="expanded",
-        menu_items={
-            'Get Help': 'https://github.com/your-repo',
-            'Report a bug': "https://github.com/your-repo/issues",
-            'About': "# AI Data Insight Pro\nThe most advanced AI-powered data analysis tool!"
-        }
-    )
-    
-    # Check access
-    if st.session_state.access_granted:
-        # Show main app
-        main_app_content()
-    else:
-        # Show access control
-        access_control_page()
+    # Check access first
+    if access_control_page():
+        # Access granted - show main app
+        main_app()
+    # If no access, the access_control_page() will handle the display
 
 if __name__ == "__main__":
     main()
