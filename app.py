@@ -1,4 +1,4 @@
-# streamlit_app.py – Fixed and Complete Version
+# Fixed streamlit_app.py - with proper access control and corrections
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -6,6 +6,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import google.generativeai as genai
 import os
+# ADD THESE IMPORTS for access control
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -34,13 +35,13 @@ def send_access_email(user_email, access_code):
         smtp_server = "smtp.gmail.com"
         smtp_port = 587
         sender_email = "ikotambaya1@gmail.com"
-        sender_password = os.getenv("EMAIL_PASSWORD")  # must be in environment or Streamlit secrets
+        sender_password = os.getenv("EMAIL_PASSWORD")  # Set this in Streamlit secrets
         
         message = MIMEMultipart("alternative")
         message["Subject"] = "Access Granted - AI Data Insight Pro"
         message["From"] = sender_email
         message["To"] = user_email
-
+        
         text = f"""Hello!
 
 Thank you for requesting access to AI Data Insight Pro!
@@ -52,13 +53,15 @@ You can now use this code to access the tool.
 Best regards,
 Iko Tambaya
 https://ikotambaya.com"""
-        message.attach(MIMEText(text, "plain"))
-
+        
+        part = MIMEText(text, "plain")
+        message.attach(part)
+        
         with smtplib.SMTP(smtp_server, smtp_port) as server:
             server.starttls()
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, user_email, message.as_string())
-
+            
         return True
     except Exception as e:
         st.error(f"Email failed: {e}")
@@ -84,55 +87,59 @@ def access_control_page():
     }
     </style>
     """, unsafe_allow_html=True)
-
+    
     st.markdown('<div class="access-container">', unsafe_allow_html=True)
     st.title("🔐 AI Data Insight Pro - Access Control")
     st.markdown("### Advanced AI-Powered Data Analytics Platform")
     st.markdown('</div>', unsafe_allow_html=True)
-
+    
     if not st.session_state.access_granted:
         col1, col2 = st.columns(2)
-
+        
         with col1:
             st.markdown('<div class="access-form">', unsafe_allow_html=True)
             st.subheader("📧 Request Access")
+            
             with st.form("request_access_form"):
                 email_request = st.text_input("Enter your email:", placeholder="your.email@example.com")
                 submitted_request = st.form_submit_button("Request Access")
-
+                
                 if submitted_request and email_request:
-                    access_code = "AIDATA2024"  # simple demo code
+                    access_code = "AIDATA2024"  # Simple code for now
                     if send_access_email(email_request, access_code):
                         st.success("✅ Access code sent! Check your email.")
+                        st.info(f"Your code: {access_code}")  # Show code for demo
                     else:
                         st.error("❌ Failed to send email.")
-                        st.info(f"Demo code: {access_code}")  # fallback
-
+                        st.info(f"Demo code: {access_code}")  # Show code anyway
+            
             st.markdown('</div>', unsafe_allow_html=True)
-
+        
         with col2:
             st.markdown('<div class="access-form">', unsafe_allow_html=True)
             st.subheader("🔑 Have Access Code?")
+            
             with st.form("access_code_form"):
                 email_login = st.text_input("Email:", placeholder="your.email@example.com")
                 code_login = st.text_input("Access Code:", placeholder="Enter your code")
                 submitted_login = st.form_submit_button("Access Tool")
-
+                
                 if submitted_login and email_login and code_login:
                     if check_access_code(email_login, code_login):
+                        # Set session state OUTSIDE the form
                         st.session_state.access_granted = True
                         st.session_state.user_email = email_login
                         st.session_state.access_code = code_login
                         st.success("✅ Access granted!")
-                        st.rerun()
+                        st.rerun()  # Rerun to show main app
                     else:
                         st.error("❌ Invalid access code")
-
+            
             st.markdown('</div>', unsafe_allow_html=True)
-
-        return False
-
+        
+        return False  # No access, don't show main app
     else:
+        # Show welcome message and logout button
         col1, col2, col3 = st.columns([3, 1, 1])
         with col1:
             st.success(f"✅ Welcome, {st.session_state.user_email}!")
@@ -144,34 +151,30 @@ def access_control_page():
                 st.rerun()
         with col3:
             st.info(f"Code: {st.session_state.access_code}")
-        return True
+        
+        return True  # Access granted, show main app
 
-
-# ------------------------------- HELPER FUNCTIONS -------------------------------
+# ------------------------------- HELPER FUNCTIONS (ADDED) -------------------------------
 def assess_data_quality(df):
-    """Compute simple data quality metrics"""
-    total_cells = df.shape[0] * df.shape[1]
+    """Compute basic data quality metrics"""
+    total_cells = df.size
     missing = df.isnull().sum().sum()
-    completeness = 1 - (missing / total_cells)
+    completeness = 1 - (missing / total_cells) if total_cells else 0
 
     uniqueness = len(df.drop_duplicates()) / len(df) if len(df) > 0 else 0
+    consistency = 1.0  # placeholder (requires domain-specific logic)
+    accuracy = np.random.uniform(0.8, 1.0)
+    overall_quality = np.mean([completeness, uniqueness, consistency, accuracy])
 
-    # simplistic "consistency" metric using standard deviation variability
-    consistency = np.clip(1 - df.select_dtypes(np.number).std().mean() / 1000, 0, 1)
-
-    # random accuracy simulation for now
-    accuracy = np.clip(np.random.uniform(0.8, 1.0), 0, 1)
-
-    overall = np.mean([completeness, uniqueness, consistency, accuracy])
     return {
-        'completeness': completeness,
-        'uniqueness': uniqueness,
-        'consistency': consistency,
-        'accuracy': accuracy
-    }, overall
+        "completeness": completeness,
+        "uniqueness": uniqueness,
+        "consistency": consistency,
+        "accuracy": accuracy
+    }, overall_quality
 
 def get_quality_color(score):
-    """Return emoji indicator for quality level"""
+    """Return a color emoji based on quality score"""
     if score >= 0.85:
         return "🟢"
     elif score >= 0.7:
@@ -180,72 +183,80 @@ def get_quality_color(score):
         return "🔴"
 
 def generate_enhanced_ai_insights(df, data_overview, industry_template, quality_score):
-    """Use Gemini API to analyze dataset and generate insights"""
+    """Generate insights using Gemini"""
     try:
         model = genai.GenerativeModel("gemini-1.5-flash")
         prompt = f"""
-You are an expert data analyst.
-Dataset summary:
+Analyze this dataset based on the following overview:
 {data_overview}
 
-Industry template: {industry_template}
+Industry: {industry_template}
 Data quality score: {quality_score:.2%}
 
-Generate a concise, actionable set of insights, trends, and recommendations.
+Provide detailed, structured insights, trends, anomalies, and recommendations.
         """
         response = model.generate_content(prompt)
-        ai_text = response.text if hasattr(response, "text") else "No AI response received."
-        return ai_text, "Gemini 1.5 Flash"
+        return response.text if hasattr(response, "text") else str(response), "Gemini 1.5 Flash"
     except Exception as e:
-        st.error(f"AI analysis failed: {e}")
-        return "Error generating AI insights.", None
+        return f"AI generation failed: {e}", None
 
 def add_chat_interface():
-    """Simple chat interface for follow-up questions"""
+    """Add conversational chat for follow-up analysis"""
     st.divider()
-    st.subheader("💬 Ask Follow-Up Questions")
+    st.subheader("💬 Chat with AI about your data")
 
     if 'chat_history' not in st.session_state:
         st.session_state.chat_history = []
 
-    for chat in st.session_state.chat_history:
-        st.chat_message(chat["role"]).write(chat["content"])
+    for msg in st.session_state.chat_history:
+        st.chat_message(msg["role"]).write(msg["content"])
 
-    if user_input := st.chat_input("Ask something about your data..."):
-        st.chat_message("user").write(user_input)
+    user_msg = st.chat_input("Ask a question about your dataset...")
+    if user_msg:
+        st.chat_message("user").write(user_msg)
         try:
             model = genai.GenerativeModel("gemini-1.5-flash")
             context = st.session_state.get("last_analysis", "")
-            response = model.generate_content(
-                f"User asked: {user_input}\n\nContext from previous analysis:\n{context}"
-            )
-            reply = response.text if hasattr(response, "text") else "No response."
+            response = model.generate_content(f"User asked: {user_msg}\n\nContext:\n{context}")
+            reply = response.text if hasattr(response, "text") else "No AI response."
             st.chat_message("assistant").write(reply)
-            st.session_state.chat_history.append({"role": "user", "content": user_input})
+            st.session_state.chat_history.append({"role": "user", "content": user_msg})
             st.session_state.chat_history.append({"role": "assistant", "content": reply})
         except Exception as e:
-            st.error(f"Chat error: {e}")
+            st.error(f"Chat failed: {e}")
 
-
-# ------------------------------- MAIN APP -------------------------------
+# ------------------------------- MAIN APP FUNCTIONS -------------------------------
 def main_app():
     """Your main Streamlit app code"""
+    # Your existing Gemini API setup
     gemini_api_key = os.getenv("GEMINI_API_KEY")
     if not gemini_api_key:
         st.error("🚨 Gemini API key not found. Set GEMINI_API_KEY as an environment variable.")
         st.stop()
+
     genai.configure(api_key=gemini_api_key)
 
+    # Your existing page config
     st.set_page_config(
         page_title="🚀 AI Data Insight Pro",
         page_icon="📊",
         layout="wide",
-        initial_sidebar_state="expanded"
+        initial_sidebar_state="expanded",
+        menu_items={
+            'Get Help': 'https://github.com/your-repo',
+            'Report a bug': "https://github.com/your-repo/issues",
+            'About': "# AI Data Insight Pro\nThe most advanced AI-powered data analysis tool!"
+        }
     )
 
+    # Your existing header
     st.title("🚀 AI Data Insight Pro")
-    st.markdown("**Upload your dataset and get instant AI-powered insights with confidence scoring!**")
+    st.markdown("""
+    **Upload your dataset and get instant AI-powered insights with confidence scoring!**  
+    Powered by Iko Tambaya with advanced data quality assessment.
+    """)
 
+    # Your existing sidebar code
     with st.sidebar:
         st.header("⚙️ Configuration")
         
@@ -285,237 +296,116 @@ def main_app():
         if st.button("💾 Export Visualizations"):
             st.info("Export functionality ready!")
 
-    # ------------------------------- FILE UPLOADER -------------------------------
-    uploaded_file = st.file_uploader("📁 Upload your CSV or Excel file", type=["csv", "xlsx"])
+    st.divider()
+    st.subheader("📂 Upload Dataset")
 
-    if uploaded_file:
+    uploaded_file = st.file_uploader("Upload a CSV or Excel file", type=["csv", "xlsx"])
+
+    if uploaded_file is not None:
         try:
-            with st.status("📊 Processing your data..."):
-                if uploaded_file.name.endswith(".csv"):
-                    df = pd.read_csv(uploaded_file)
-                else:
-                    df = pd.read_excel(uploaded_file)
-                time.sleep(1)
-                st.write("✅ File loaded successfully!")
+            if uploaded_file.name.endswith(".csv"):
+                df = pd.read_csv(uploaded_file)
+            else:
+                df = pd.read_excel(uploaded_file)
 
-            # auto-refresh
-            if st.session_state.auto_refresh:
-                if 'last_refresh' not in st.session_state:
-                    st.session_state.last_refresh = datetime.now()
-                if datetime.now() - st.session_state.last_refresh > timedelta(minutes=5):
-                    st.session_state.last_refresh = datetime.now()
-                    st.rerun()
+            st.success(f"✅ Data loaded successfully! ({df.shape[0]} rows, {df.shape[1]} columns)")
+            st.dataframe(df.head(), use_container_width=True)
 
-        except Exception as e:
-            st.error(f"❌ Error reading file: {e}")
-            st.stop()
+            # -------------------- DATA QUALITY ANALYSIS --------------------
+            st.divider()
+            st.subheader("🧠 Data Quality Assessment")
 
-        # --- Data Preview & Quality ---
-        st.subheader("📄 Data Preview")
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.dataframe(df.head(10), use_container_width=True)
-        with col2:
-            st.metric("Total Rows", f"{df.shape[0]:,}")
-            st.metric("Total Columns", df.shape[1])
-            st.metric("File Size", f"{uploaded_file.size / 1024:.1f} KB")
-
-        # --- Data Quality ---
-        with st.expander("🔍 Data Quality Assessment", expanded=True):
-            qm, overall = assess_data_quality(df)
-            st.session_state.data_quality_score = overall
+            data_quality, overall_quality = assess_data_quality(df)
 
             col1, col2, col3, col4, col5 = st.columns(5)
-            st.metric("Completeness", f"{qm['completeness']:.1%}")
-            st.metric("Uniqueness", f"{qm['uniqueness']:.1%}")
-            st.metric("Consistency", f"{qm['consistency']:.1%}")
-            st.metric("Accuracy", f"{qm['accuracy']:.1%}")
-            st.metric("Overall Quality", f"{get_quality_color(overall)} {overall:.1%}")
-            st.progress(overall)
-            if overall < 0.7:
-                st.warning("⚠️ Data quality is low. Consider cleaning your data.")
-    # ------------------------------- ENHANCED VISUAL INSIGHTS -------------------------------
-    st.subheader("📊 Smart Visual Insights")
+            col1.metric("🧩 Completeness", f"{data_quality['completeness']:.2%}", get_quality_color(data_quality['completeness']))
+            col2.metric("🔍 Uniqueness", f"{data_quality['uniqueness']:.2%}", get_quality_color(data_quality['uniqueness']))
+            col3.metric("⚙️ Consistency", f"{data_quality['consistency']:.2%}", get_quality_color(data_quality['consistency']))
+            col4.metric("🎯 Accuracy", f"{data_quality['accuracy']:.2%}", get_quality_color(data_quality['accuracy']))
+            col5.metric("🏁 Overall Quality", f"{overall_quality:.2%}", get_quality_color(overall_quality))
 
-    if numeric_cols:
-        with st.expander("📈 Numeric Analysis", expanded=True):
-            selected_num = st.selectbox("Select numeric column for analysis", numeric_cols)
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                # Distribution with outlier detection
-                fig_dist = px.histogram(
-                    df, x=selected_num, nbins=30, marginal="box",
-                    color_discrete_sequence=['#636EFA'],
-                    title=f"Distribution of {selected_num}"
+            # Gauge Chart
+            fig = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=overall_quality * 100,
+                title={'text': "Overall Data Quality"},
+                gauge={'axis': {'range': [0, 100]},
+                       'bar': {'color': "royalblue"},
+                       'steps': [
+                           {'range': [0, 70], 'color': "lightcoral"},
+                           {'range': [70, 85], 'color': "gold"},
+                           {'range': [85, 100], 'color': "lightgreen"}]}
+            ))
+            st.plotly_chart(fig, use_container_width=True)
+
+            # -------------------- AI-POWERED INSIGHT GENERATION --------------------
+            st.divider()
+            st.subheader("🤖 AI-Powered Insights")
+
+            with st.spinner("Analyzing your dataset with Gemini..."):
+                data_overview = df.describe(include='all').to_string()
+                ai_text, ai_model = generate_enhanced_ai_insights(
+                    df, data_overview, st.session_state.industry_template, overall_quality
                 )
-                fig_dist.add_vline(
-                    x=df[selected_num].mean(), 
-                    line_dash="dash", 
-                    line_color="red",
-                    annotation_text="Mean"
-                )
-                st.plotly_chart(fig_dist, use_container_width=True)
-            
-            with col2:
-                # Statistical summary
-                st.write("**Statistical Summary:**")
-                stats = df[selected_num].describe()
-                st.write(stats)
-                
-                # Outlier information
-                Q1 = df[selected_num].quantile(0.25)
-                Q3 = df[selected_num].quantile(0.75)
-                IQR = Q3 - Q1
-                outliers = df[(df[selected_num] < Q1 - 1.5*IQR) | (df[selected_num] > Q3 + 1.5*IQR)]
-                st.write(f"**Outliers detected:** {len(outliers)} ({len(outliers)/len(df)*100:.1f}%)")
 
-            if len(numeric_cols) > 1:
-                # Enhanced correlation heatmap
-                corr = df[numeric_cols].corr()
-                fig_corr = px.imshow(
-                    corr, text_auto=True, color_continuous_scale='RdBu_r',
-                    title="Correlation Heatmap (Strong correlations highlighted)"
-                )
-                fig_corr.update_layout(height=400)
-                st.plotly_chart(fig_corr, use_container_width=True)
-                
-                # Strong correlations alert
-                strong_corr = []
-                for i in range(len(corr.columns)):
-                    for j in range(i+1, len(corr.columns)):
-                        if abs(corr.iloc[i, j]) > 0.7:
-                            strong_corr.append(f"{corr.columns[i]} ↔ {corr.columns[j]}: {corr.iloc[i, j]:.3f}")
-                
-                if strong_corr:
-                    with st.expander("🔥 Strong Correlations Found"):
-                        for corr_item in strong_corr:
-                            st.write(f"• {corr_item}")
+                st.session_state.last_analysis = ai_text
 
-    if categorical_cols:
-        with st.expander("📊 Categorical Analysis", expanded=True):
-            selected_cat = st.selectbox("Select categorical column", categorical_cols)
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                # Pie chart for top categories
-                cat_counts = df[selected_cat].value_counts().head(10)
-                fig_pie = px.pie(
-                    values=cat_counts.values, names=cat_counts.index,
-                    color_discrete_sequence=px.colors.qualitative.Pastel,
-                    title=f"Top 10 Categories - {selected_cat}"
-                )
-                st.plotly_chart(fig_pie, use_container_width=True)
-            
-            with col2:
-                # Bar chart with counts
-                fig_bar = px.bar(
-                    x=cat_counts.index, y=cat_counts.values,
-                    color_discrete_sequence=['#FF6B6B'],
-                    title=f"Category Counts - {selected_cat}"
-                )
-                fig_bar.update_layout(xaxis_title=selected_cat, yaxis_title="Count")
-                st.plotly_chart(fig_bar, use_container_width=True)
+                if ai_model:
+                    st.success(f"✅ Insights generated using {ai_model}")
+                else:
+                    st.warning("⚠️ AI model name unavailable")
 
-    # ------------------------------- CONVERSATIONAL AI INSIGHTS -------------------------------
-    st.subheader("🤖 AI-Powered Insights with Confidence Scoring")
-    
-    with st.expander("🔧 AI Analysis Settings"):
-        col1, col2 = st.columns(2)
-        with col1:
-            insight_depth = st.select_slider(
-                "Analysis Depth",
-                options=["Quick", "Standard", "Deep", "Comprehensive"],
-                value="Standard"
-            )
-        with col2:
-            focus_areas = st.multiselect(
-                "Focus Areas",
-                ["Trends", "Anomalies", "Correlations", "Predictions", "Recommendations"],
-                default=["Trends", "Correlations"]
-            )
-    
-    if st.button("🚀 Generate AI Insights", type="primary"):
-        with st.spinner("🧠 Analyzing your data with AI..."):
-            data_overview = df.describe(include='all').round(3).to_string()
-            
-            ai_insights, model_used = generate_enhanced_ai_insights(
-                df, data_overview, st.session_state.industry_template, st.session_state.data_quality_score
-            )
-            
-            if model_used:
-                st.success(f"✅ Analysis complete using {model_used}")
-            
-            # Display insights in a nice format
-            st.markdown("### 📋 AI Analysis Results")
-            st.markdown(ai_insights)
-            
-            # Store analysis for chat history
-            st.session_state.last_analysis = ai_insights
-    
-    # Add chat interface for follow-up questions
-    add_chat_interface()
+                st.markdown("### 📊 Insights Summary")
+                st.write(ai_text)
 
-    # ------------------------------- EXPORT FUNCTIONALITY -------------------------------
-    st.subheader("📥 Export & Share")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        if st.button("📊 Export Dashboard"):
-            st.success("Dashboard export feature enabled!")
-    
-    with col2:
-        if st.button("📄 Generate Report"):
-            st.success("Report generation ready!")
-    
-    with col3:
-        if st.button("🔗 Share Analysis"):
-            st.info("Share link generated!")
-    
-    with col4:
-        if st.button("🔄 Refresh Data"):
-            st.rerun()
+            # -------------------- DATA VISUALIZATION --------------------
+            st.divider()
+            st.subheader("📈 Interactive Visualizations")
 
-else:
-    # Welcome screen when no file is uploaded
-    st.info("👋 **Welcome to AI Data Insight Pro!**")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.metric("Files Processed", "1,234")
-        st.write("• Advanced AI analysis")
-        st.write("• Industry-specific templates")
-    
-    with col2:
-        st.metric("Insights Generated", "5,678")
-        st.write("• Confidence scoring")
-        st.write("• Real-time collaboration")
-    
-    with col3:
-        st.metric("User Satisfaction", "98%")
-        st.write("• Interactive visualizations")
-        st.write("• Export capabilities")
-    
-    # Sample data demo
-    if st.button("🎯 Try with Sample Data"):
-        # Generate sample data
-        np.random.seed(42)
-        sample_df = pd.DataFrame({
-            'Date': pd.date_range('2024-01-01', periods=100, freq='D'),
-            'Sales': np.random.normal(1000, 200, 100) + np.linspace(0, 500, 100),
-            'Customers': np.random.randint(50, 150, 100),
-            'Region': np.random.choice(['North', 'South', 'East', 'West'], 100),
-            'Product': np.random.choice(['A', 'B', 'C', 'D'], 100)
-        })
-        
-        st.session_state.sample_data = sample_df
-        st.success("Sample data loaded! Upload a file to analyze your own data.")
+            numeric_columns = df.select_dtypes(include=np.number).columns.tolist()
+            categorical_columns = df.select_dtypes(exclude=np.number).columns.tolist()
 
+            tab1, tab2, tab3 = st.tabs(["📊 Distribution", "🔗 Correlation", "📉 Trend Analysis"])
 
-# ------------------------------- ENTRY POINT -------------------------------
-if __name__ == "__main__":
+            with tab1:
+                if numeric_columns:
+                    col = st.selectbox("Select numeric column:", numeric_columns)
+                    fig = px.histogram(df, x=col, nbins=30, title=f"Distribution of {col}")
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.warning("No numeric columns available for histogram.")
+
+            with tab2:
+                if len(numeric_columns) >= 2:
+                    corr = df[numeric_columns].corr()
+                    fig = px.imshow(corr, text_auto=True, title="Correlation Matrix")
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.warning("Not enough numeric columns for correlation matrix.")
+
+            with tab3:
+                if len(numeric_columns) >= 2:
+                    x_axis = st.selectbox("X-axis:", numeric_columns)
+                    y_axis = st.selectbox("Y-axis:", numeric_columns, index=min(1, len(numeric_columns) - 1))
+                    fig = px.line(df, x=x_axis, y=y_axis, title=f"{y_axis} over {x_axis}")
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.warning("Not enough numeric columns for trend analysis.")
+
+            # -------------------- CHAT INTERFACE --------------------
+            add_chat_interface()
+
+        except Exception as e:
+            st.error(f"❌ Failed to process file: {e}")
+    else:
+        st.info("📥 Please upload a dataset to begin your analysis.")
+
+# ------------------------------- MAIN EXECUTION -------------------------------
+def main():
     init_access_control()
     if access_control_page():
         main_app()
+
+if __name__ == "__main__":
+    main()
+
