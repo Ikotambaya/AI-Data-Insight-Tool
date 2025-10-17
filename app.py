@@ -410,7 +410,7 @@ if uploaded_file:
         st.stop()
 
 # ------------------------------- MAIN DASHBOARD -------------------------------
-    if 'df' in st.session_state:
+if 'df' in st.session_state:
     df = st.session_state.df
     
     # ------------------------------- ADVANCED KPI CARDS -------------------------------    
