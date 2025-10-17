@@ -35,17 +35,6 @@ from email.mime.multipart import MIMEMultipart
 import hashlib
 import time
 from datetime import datetime, timedelta
-
-import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import os
-import google.generativeai as genai
-from datetime import datetime, timedelta
-import time
 from io import BytesIO
 import base64
 from PIL import Image
